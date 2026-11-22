@@ -1,0 +1,148 @@
+---
+import Icon from './Icon.astro';
+import { site } from '../data/site';
+---
+
+<section class="intro" aria-labelledby="intro-statement">
+  <div class="intro__kicker">
+    <p class="kicker">Hey! I'm <em>Akira →</em><br />Senior Lead Designer based in São Paulo ↷</p>
+    <div class="snippet">
+      <code class="snippet__code mono t-label"><span class="snippet__prompt">$</span> {site.npx}</code>
+      <button class="snippet__copy" type="button" data-copy={site.npx} aria-label="Copy command">
+        <Icon name="copy" />
+      </button>
+      <span class="snippet__toast t-body-compact" role="status" aria-live="polite"></span>
+    </div>
+  </div>
+  <p class="statement" id="intro-statement">
+    <span class="c-secondary">Rafael Akira</span> is a <em>systems thinker</em> and <em>designer</em>{' '}<br class="desk" />based in São Paulo, with <em>ten years</em> across intersection of{' '}<em class="c-secondary">brand expression</em>, <em
+      class="c-secondary">craft</em
+    > &amp; <em class="c-secondary">design systems</em>.
+  </p>
+  <p class="statement statement--now">Currently at <a href="https://www.ibm.com" rel="noopener">IBM</a>.</p>
+  <a class="cue" href="#content" aria-label="Skip to content">↓</a>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((btn) => {
+    const toast = btn.parentElement?.querySelector('.snippet__toast');
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(btn.dataset.copy ?? '');
+        if (toast) toast.textContent = 'Copied to clipboard';
+      } catch {
+        if (toast) toast.textContent = 'Copy failed';
+      }
+      setTimeout(() => {
+        if (toast) toast.textContent = '';
+      }, 1600);
+    });
+  });
+</script>
+
+<style>
+  .intro {
+    padding: 24px var(--pf-margin);
+    background: var(--cds-background);
+  }
+  .intro__kicker {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+    padding-bottom: 32px;
+  }
+  .kicker {
+    font-weight: 300;
+    font-size: 24px;
+    line-height: 32px;
+    color: var(--cds-text-helper);
+  }
+  .snippet {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    height: 32px;
+    background: var(--cds-layer-01);
+    border-radius: 4px;
+  }
+  .snippet__code {
+    padding: 8px 0 8px 16px;
+    color: var(--cds-text-primary);
+    white-space: nowrap;
+  }
+  .snippet__prompt {
+    color: var(--cds-text-helper);
+  }
+  .snippet__copy {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    margin-left: 8px;
+    padding: 0;
+    border: 0;
+    border-radius: 0 4px 4px 0;
+    background: transparent;
+    color: var(--cds-icon-primary);
+    cursor: pointer;
+    transition: background var(--pf-fast) var(--pf-ease-productive);
+  }
+  .snippet__copy:hover {
+    background: var(--cds-layer-hover-01);
+  }
+  .snippet__toast {
+    position: absolute;
+    left: calc(100% + 8px);
+    white-space: nowrap;
+    color: var(--cds-text-helper);
+  }
+  .statement {
+    max-width: 1504px;
+    font-weight: 300;
+    font-size: 48px;
+    line-height: 56px;
+    color: var(--cds-text-helper);
+  }
+  .statement--now {
+    margin-top: 56px;
+  }
+  .cue {
+    display: inline-block;
+    margin-top: 24px;
+    font-weight: 300;
+    font-size: 36px;
+    line-height: 44px;
+    color: var(--cds-text-primary);
+  }
+  .cue:hover {
+    color: var(--cds-text-primary);
+    text-decoration: none;
+  }
+  @media (max-width: 1055px) {
+    .desk {
+      display: none;
+    }
+  }
+  @media (max-width: 671px) {
+    .intro {
+      padding: 24px var(--pf-margin) 16px;
+    }
+    .kicker {
+      font-size: 16px;
+      line-height: 24px;
+    }
+    .statement {
+      font-size: 32px;
+      line-height: 40px;
+    }
+    .statement--now {
+      margin-top: 40px;
+    }
+    .cue {
+      font-size: 32px;
+      line-height: 40px;
+    }
+  }
+</style>

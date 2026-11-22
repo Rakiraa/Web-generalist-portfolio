@@ -1,0 +1,43 @@
+---
+// Hero widget: the clock field. 1584 × 482 at the max breakpoint (66 × 20 clocks), scaling down to 1056;
+// below that a compact 33 × 11 field (clocks ≤ 24px), e.g. 402 × 137 on mobile.
+---
+
+<section class="hero" aria-label="Live clock field">
+  <div class="cf" data-clockfield>
+    <canvas tabindex="0" role="img" aria-label="Clock field at rest: every clock shows 10:10."></canvas>
+  </div>
+</section>
+
+<script>
+  import { mountClockField } from '../scripts/clockfield/engine.js';
+  document.querySelectorAll<HTMLElement>('[data-clockfield]').forEach((el) => mountClockField(el));
+</script>
+
+<style>
+  .hero {
+    container-type: inline-size;
+    background: var(--cds-background);
+  }
+  .cf {
+    width: 100%;
+    /* reserve the final height before the script runs (no layout shift) */
+    height: min(266px, calc(100cqw * 266 / 792));
+  }
+  @container (min-width: 1056px) {
+    .cf {
+      height: calc(100cqw * 482 / 1584);
+    }
+  }
+  .cf canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    touch-action: pan-y;
+  }
+  .cf canvas:focus-visible {
+    outline: 2px solid var(--cds-focus);
+    outline-offset: -2px;
+  }
+</style>

@@ -1,0 +1,36 @@
+---
+// Carbon read-only tag (medium, 24px) with a leading icon.
+import Icon from './Icon.astro';
+
+interface Props {
+  label: string;
+  icon: string;
+  tone: 'blue' | 'green' | 'yellow';
+}
+
+const { label, icon, tone } = Astro.props;
+---
+
+<span class={`tag tag--${tone} t-label`}><Icon name={icon} />{label}</span>
+
+<style>
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 24px;
+    padding: 0 8px 0 4px;
+    border-radius: 12px;
+    background: var(--cds-tag-background-gray);
+    white-space: nowrap;
+  }
+  .tag--blue {
+    color: var(--cds-tag-color-blue);
+  }
+  .tag--green {
+    color: var(--cds-tag-color-green);
+  }
+  .tag--yellow {
+    color: var(--pf-tag-color-yellow);
+  }
+</style>

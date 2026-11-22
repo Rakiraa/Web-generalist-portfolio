@@ -1,0 +1,124 @@
+---
+import { footerLinks, site } from '../data/site';
+const year = 2026;
+---
+
+<footer class="ft">
+  <h2 class="ft__title">Let’s talk.</h2>
+
+  <div class="ft__desk">
+    <div class="ft__contact">
+      <p class="ft__availability">{site.availability}</p>
+      <ul class="ft__links mono t-body">
+        {
+          footerLinks.map((l) => (
+            <li>{l.href ? <a href={l.href} rel="noopener">{l.label}&ensp;{l.mark}</a> : <span>{l.label}&ensp;{l.mark}</span>}</li>
+          ))
+        }
+      </ul>
+    </div>
+    <div class="ft__legal mono t-label">
+      <span>© {year} Rafael Akira</span>
+      <span>Built with love, made in Brazil.</span>
+    </div>
+  </div>
+
+  <div class="ft__mob mono t-label">
+    <p class="c-secondary">
+      {
+        footerLinks.slice(0, 3).map((l, i) => (
+          <Fragment>
+            {i > 0 && ' · '}
+            {l.href ? <a href={l.href} rel="noopener">{l.label}</a> : <span>{l.label}</span>}
+          </Fragment>
+        ))
+      }
+    </p>
+    <p class="c-helper">© {year} Rafael Akira · São Paulo</p>
+  </div>
+</footer>
+
+<style>
+  .ft {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    padding: 96px var(--pf-margin) 40px;
+    border-top: 1px solid var(--cds-border-subtle-01);
+    background: var(--cds-background);
+  }
+  .ft__title {
+    font-weight: 300;
+    font-size: 144px;
+    line-height: 152px;
+    color: var(--cds-text-primary);
+  }
+  .ft__desk {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+  }
+  .ft__contact {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 32px;
+  }
+  .ft__availability {
+    max-width: 520px;
+    font-weight: 300;
+    font-size: 20px;
+    line-height: 28px;
+    color: var(--cds-text-secondary);
+  }
+  .ft__links {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: right;
+    color: var(--cds-text-secondary);
+  }
+  .ft__links a {
+    color: var(--cds-text-secondary);
+  }
+  .ft__links a:hover {
+    color: var(--cds-text-primary);
+  }
+  .ft__legal {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 24px;
+    border-top: 1px solid var(--cds-border-subtle-01);
+    color: var(--cds-text-helper);
+  }
+  .ft__mob {
+    display: none;
+  }
+  .ft__mob a {
+    color: var(--cds-text-secondary);
+  }
+  @media (max-width: 1055px) {
+    .ft__title {
+      font-size: 92px;
+      line-height: 100px;
+    }
+  }
+  @media (max-width: 671px) {
+    .ft {
+      gap: 16px;
+      padding: 48px var(--pf-margin) 24px;
+    }
+    .ft__title {
+      font-size: 68px;
+      line-height: 76px;
+    }
+    .ft__desk {
+      display: none;
+    }
+    .ft__mob {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+  }
+</style>

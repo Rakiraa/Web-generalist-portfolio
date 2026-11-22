@@ -1,0 +1,84 @@
+---
+import Icon from './Icon.astro';
+---
+
+<header class="hdr">
+  <p class="hdr__greeting t-body" data-greeting>
+    <span class="hdr__icon" data-period="morning"><Icon name="sunrise" size={20} /></span>
+    <span class="hdr__icon" data-period="afternoon" hidden><Icon name="sun" size={20} /></span>
+    <span class="hdr__icon" data-period="evening" hidden><Icon name="sunset" size={20} /></span>
+    <span class="hdr__icon" data-period="night" hidden><Icon name="moon" size={20} /></span>
+    <span data-greeting-text>Hello from São Paulo</span>
+  </p>
+  <a class="hdr__avatar" href="/about" aria-label="About Rafael Akira">
+    <img src="/avatar.png" width="32" height="32" alt="" />
+    <span class="hdr__dot" aria-hidden="true"></span>
+  </a>
+</header>
+
+<script>
+  const TZ = 'America/Sao_Paulo';
+  function update() {
+    const root = document.querySelector('[data-greeting]');
+    if (!root) return;
+    const now = new Date();
+    const hour = +new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: '2-digit', hour12: false }).format(now) % 24;
+    const time = new Intl.DateTimeFormat('en-US', { timeZone: TZ, hour: 'numeric', minute: '2-digit' }).format(now);
+    const period = hour >= 5 && hour < 12 ? 'morning' : hour >= 12 && hour < 18 ? 'afternoon' : hour >= 18 && hour < 22 ? 'evening' : 'night';
+    const hello = period === 'night' ? 'Good night' : `Good ${period}`;
+    root.querySelectorAll<HTMLElement>('[data-period]').forEach((el) => (el.hidden = el.dataset.period !== period));
+    const text = root.querySelector('[data-greeting-text]');
+    if (text) text.textContent = `${hello}, it’s ${time} in São Paulo`;
+  }
+  update();
+  setInterval(update, 30000);
+</script>
+
+<style>
+  .hdr {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 48px;
+    padding: 0 var(--pf-margin);
+    background: var(--cds-background);
+  }
+  .hdr__greeting {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--cds-text-primary);
+  }
+  .hdr__icon {
+    display: inline-flex;
+    color: var(--cds-support-warning);
+  }
+  .hdr__icon[hidden] {
+    display: none;
+  }
+  .hdr__avatar {
+    position: relative;
+    display: block;
+    width: 32px;
+    height: 32px;
+    flex: none;
+  }
+  .hdr__avatar img {
+    display: block;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    object-fit: cover;
+  }
+  .hdr__dot {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--cds-support-warning);
+    box-shadow: 0 0 0 1px var(--cds-background);
+  }
+</style>

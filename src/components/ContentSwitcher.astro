@@ -1,0 +1,146 @@
+---
+// Carbon content switcher (small, 32px). Lab and Memo are disabled until those pages exist; hovering or
+// focusing them shows a Carbon tooltip: "Under maintenance. Coming soon."
+import Icon from './Icon.astro';
+
+interface Props {
+  current: 'work' | 'about';
+}
+
+const { current } = Astro.props;
+const items = [
+  { id: 'work', label: 'Work', href: '/', icon: 'sunrise' },
+  { id: 'lab', label: 'Lab', icon: 'chemistry', disabled: true },
+  { id: 'memo', label: 'Memo', icon: 'data--view--alt', disabled: true },
+  { id: 'about', label: 'About', href: '/about', icon: 'fingerprint-recognition' },
+];
+---
+
+<nav class="cs-bar" aria-label="Sections">
+  <ul class="cs">
+    {
+      items.map((it) => (
+        <li class="cs__li">
+          {it.disabled ? (
+            <span class="cs__item cs__item--disabled t-body-compact" role="link" aria-disabled="true" tabindex="0" aria-describedby={`tip-${it.id}`}>
+              {it.label}
+              <span class="tip t-body" role="tooltip" id={`tip-${it.id}`}>
+                Under maintenance. Coming soon.
+              </span>
+            </span>
+          ) : (
+            <a class="cs__item t-body-compact" href={it.href} aria-current={current === it.id ? 'page' : undefined}>
+              {current === it.id && <Icon name={it.icon} />}
+              {it.label}
+            </a>
+          )}
+        </li>
+      ))
+    }
+  </ul>
+</nav>
+
+<style>
+  .cs-bar {
+    padding: 40px var(--pf-margin);
+    background: var(--cds-background);
+  }
+  .cs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    width: 381px;
+    border: 1px solid var(--cds-border-inverse);
+    border-radius: 4px;
+  }
+  .cs__li {
+    position: relative;
+    display: flex;
+  }
+  /* divider between tabs (hidden next to the selected tab) */
+  .cs__li + .cs__li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 7px;
+    bottom: 7px;
+    width: 1px;
+    background: var(--cds-border-subtle-01);
+  }
+  .cs__li:has(> [aria-current='page'])::before,
+  .cs__li:has(> [aria-current='page']) + .cs__li::before {
+    display: none;
+  }
+  .cs__item {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 30px;
+    padding: 0 12px;
+    border-radius: 3px;
+    color: var(--cds-text-secondary);
+    white-space: nowrap;
+    transition: background var(--pf-fast) var(--pf-ease-productive), color var(--pf-fast) var(--pf-ease-productive);
+  }
+  a.cs__item:hover {
+    background: var(--cds-layer-hover-01);
+    color: var(--cds-text-primary);
+    text-decoration: none;
+  }
+  .cs__item[aria-current='page'] {
+    background: var(--cds-layer-selected-inverse);
+    color: var(--cds-text-inverse);
+  }
+  .cs__item[aria-current='page']:hover {
+    background: var(--cds-layer-selected-inverse);
+    color: var(--cds-text-inverse);
+  }
+  .cs__item--disabled {
+    color: var(--cds-text-disabled);
+    cursor: not-allowed;
+  }
+  /* Carbon tooltip, bottom-center with caret */
+  .tip {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    z-index: 5;
+    width: max-content;
+    max-width: 288px;
+    padding: 8px 16px;
+    border-radius: 2px;
+    background: var(--cds-background-inverse);
+    color: var(--cds-text-inverse);
+    white-space: normal;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-50%);
+    transition: opacity var(--pf-fast) var(--pf-ease-productive), visibility var(--pf-fast) var(--pf-ease-productive);
+    pointer-events: none;
+  }
+  .tip::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    background: var(--cds-background-inverse);
+    transform: translateX(-50%) rotate(45deg);
+  }
+  .cs__item--disabled:hover .tip,
+  .cs__item--disabled:focus-visible .tip {
+    opacity: 1;
+    visibility: visible;
+  }
+  @media (max-width: 671px) {
+    .cs-bar {
+      padding: 24px var(--pf-margin);
+    }
+    .cs {
+      width: 100%;
+    }
+  }
+</style>

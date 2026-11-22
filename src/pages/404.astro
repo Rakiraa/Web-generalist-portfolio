@@ -1,0 +1,17 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+---
+
+<Base current="work" title="Not found — Rafael Akira">
+  <PageHeader title="404" intro="This page does not exist (yet). Lab and Memo are still being built." />
+  <p class="back"><a href="/">Back to Work →</a></p>
+</Base>
+
+<style>
+  .back {
+    padding: 0 var(--pf-margin) 96px;
+    font-size: 16px;
+    line-height: 24px;
+  }
+</style>

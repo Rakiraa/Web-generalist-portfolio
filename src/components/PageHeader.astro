@@ -1,0 +1,51 @@
+---
+interface Props {
+  title: string;
+  intro: string;
+}
+
+const { title, intro } = Astro.props;
+---
+
+<header class="ph">
+  <h1 class="ph__title">{title}</h1>
+  <p class="ph__intro">{intro}</p>
+</header>
+
+<style>
+  .ph {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    padding: 80px var(--pf-margin) 40px;
+  }
+  .ph__title {
+    font-weight: 300;
+    font-size: 122px;
+    line-height: 128px;
+    color: var(--cds-text-primary);
+  }
+  .ph__intro {
+    max-width: 720px;
+    font-weight: 300;
+    font-size: 20px;
+    line-height: 28px;
+    color: var(--cds-text-secondary);
+  }
+  @media (max-width: 671px) {
+    .ph {
+      gap: 24px;
+      padding: 32px var(--pf-margin);
+    }
+    .ph__title {
+      font-size: 48px;
+      line-height: 56px;
+    }
+    .ph__intro {
+      font-weight: 400;
+      font-size: 14px;
+      line-height: 20px;
+      letter-spacing: 0.16px;
+    }
+  }
+</style>

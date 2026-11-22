@@ -1,0 +1,287 @@
+---
+// Work index: discipline filters in the Carbon batch-actions bar, live count, one line per project.
+import Icon from './Icon.astro';
+import Tag from './Tag.astro';
+import { accessIcon, disciplines, projects, workTypeIcon } from '../data/projects';
+
+const pad = (n: number) => String(n).padStart(3, '0');
+const dIcon = Object.fromEntries(disciplines.map((d) => [d.id, d]));
+---
+
+<section class="ix" aria-labelledby="ix-title" data-index>
+  <div class="ix__head">
+    <div class="ix__titles">
+      <p class="mono t-label c-link">INDEX</p>
+      <h2 class="ix__title" id="ix-title">All projects, one line each</h2>
+    </div>
+    <p class="ix__count mono" aria-hidden="true" data-count>{pad(projects.length)}</p>
+  </div>
+
+  <div class="bar" role="toolbar" aria-label="Filter projects by discipline">
+    <p class="bar__label mono t-body" data-selected>0 items selected</p>
+    <div class="bar__actions">
+      {
+        disciplines.map((d) => (
+          <button class="bar__btn t-body-compact" type="button" aria-pressed="false" data-filter={d.id} aria-label={d.label}>
+            <span class="bar__text">{d.label}</span>
+            <Icon name={d.icon} />
+          </button>
+        ))
+      }
+      <span class="bar__divider" aria-hidden="true"></span>
+      <button class="bar__btn bar__btn--icon" type="button" data-reset aria-label="Clear filters">
+        <Icon name="reset" />
+      </button>
+    </div>
+  </div>
+  <p class="sr-only" aria-live="polite" data-status></p>
+
+  <ol class="rows">
+    {
+      projects.map((p) => (
+        <li class="row" data-d={p.d.join(' ')}>
+          <span class="row__n mono t-label">{p.n}</span>
+          <span class="row__title">{p.title}</span>
+          <span class="row__meta">
+            <span class="row__icons">
+              {p.d.map((id) => (
+                <span title={dIcon[id].label}>
+                  <Icon name={dIcon[id].icon} />
+                  <span class="sr-only">{dIcon[id].label}</span>
+                </span>
+              ))}
+            </span>
+            <span class="row__client mono t-label">{p.client}</span>
+          </span>
+          <span class="row__tags">
+            <Tag label={p.type} icon={workTypeIcon[p.type]} tone="blue" />
+            <Tag label={p.access} icon={accessIcon[p.access]} tone={p.access === 'Public' ? 'green' : 'yellow'} />
+          </span>
+          <span class="row__arrow" aria-hidden="true">
+            <Icon name="arrow--right" />
+          </span>
+        </li>
+      ))
+    }
+  </ol>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-index]').forEach((root) => {
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>('[data-filter]')];
+    const rows = [...root.querySelectorAll<HTMLElement>('.row')];
+    const count = root.querySelector('[data-count]');
+    const selected = root.querySelector('[data-selected]');
+    const status = root.querySelector('[data-status]');
+    const active = new Set<string>();
+    const apply = () => {
+      let shown = 0;
+      rows.forEach((r) => {
+        const ds = (r.dataset.d ?? '').split(' ');
+        const show = active.size === 0 || ds.some((d) => active.has(d));
+        r.hidden = !show;
+        if (show) shown++;
+      });
+      if (count) count.textContent = String(shown).padStart(3, '0');
+      if (selected) selected.textContent = `${active.size} ${active.size === 1 ? 'item' : 'items'} selected`;
+      if (status) status.textContent = `Showing ${shown} of ${rows.length} projects`;
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(active.has(b.dataset.filter ?? ''))));
+    };
+    buttons.forEach((b) =>
+      b.addEventListener('click', () => {
+        const id = b.dataset.filter ?? '';
+        if (active.has(id)) active.delete(id);
+        else active.add(id);
+        apply();
+      }),
+    );
+    root.querySelector('[data-reset]')?.addEventListener('click', () => {
+      active.clear();
+      apply();
+    });
+  });
+</script>
+
+<style>
+  .ix {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    padding: 40px var(--pf-margin);
+    border-top: 1px solid var(--cds-border-subtle-00);
+  }
+  .ix__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .ix__titles {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .ix__title {
+    font-weight: 300;
+    font-size: 36px;
+    line-height: 44px;
+    color: var(--cds-text-primary);
+  }
+  .ix__count {
+    font-weight: 300;
+    font-size: 42px;
+    line-height: 48px;
+    color: var(--cds-text-helper);
+  }
+
+  /* Carbon batch actions bar, used as the discipline filter */
+  .bar {
+    display: flex;
+    align-items: center;
+    min-height: 28px;
+    background: var(--cds-background-brand);
+    color: var(--cds-text-on-color);
+  }
+  .bar__label {
+    flex: 1;
+    padding: 4px 16px;
+    letter-spacing: 0.32px;
+  }
+  .bar__actions {
+    display: flex;
+    align-items: center;
+  }
+  .bar__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 24px;
+    padding: 3px 16px;
+    border: 0;
+    background: var(--cds-button-primary);
+    color: var(--cds-text-on-color);
+    font: inherit;
+    font-size: 14px;
+    line-height: 18px;
+    letter-spacing: 0.16px;
+    cursor: pointer;
+    transition: background var(--pf-fast) var(--pf-ease-productive);
+  }
+  .bar__btn:hover {
+    background: var(--cds-button-primary-hover);
+  }
+  .bar__btn[aria-pressed='true'] {
+    background: var(--cds-button-primary-active);
+  }
+  .bar__btn:focus-visible {
+    outline: 2px solid var(--cds-focus-inverse);
+    outline-offset: -2px;
+  }
+  .bar__btn--icon {
+    padding: 3px 20px;
+  }
+  .bar__divider {
+    width: 1px;
+    height: 12px;
+    background: var(--cds-icon-on-color);
+  }
+
+  /* rows: desktop one line, below 1056 stacked as in the mobile design */
+  .rows {
+    display: flex;
+    flex-direction: column;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 360px) minmax(0, 1fr) 318px 16px;
+    align-items: center;
+    gap: 24px;
+    min-height: 56px;
+    border-bottom: 1px solid var(--cds-border-subtle-00);
+  }
+  .row[hidden] {
+    display: none;
+  }
+  .row__n {
+    color: var(--cds-link-primary);
+  }
+  .row__title {
+    font-size: 16px;
+    line-height: 24px;
+    color: var(--cds-text-secondary);
+  }
+  .row__meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+  }
+  .row__icons {
+    display: flex;
+    gap: 16px;
+    color: var(--cds-icon-secondary);
+  }
+  .row__icons > span {
+    display: inline-flex;
+  }
+  .row__client {
+    color: var(--cds-text-helper);
+  }
+  .row__tags {
+    display: flex;
+    gap: 24px;
+  }
+  .row__arrow {
+    display: inline-flex;
+    color: var(--cds-link-primary);
+  }
+
+  @media (max-width: 1055px) {
+    .row {
+      grid-template-columns: 1fr auto;
+      grid-template-areas:
+        'n client'
+        'title title'
+        'icons icons'
+        'tags arrow';
+      gap: 8px 16px;
+      padding: 12px 0 16px;
+    }
+    .row__n { grid-area: n; }
+    .row__title { grid-area: title; line-height: 22px; }
+    .row__meta { display: contents; }
+    .row__icons { grid-area: icons; margin-top: 8px; }
+    .row__client { grid-area: client; justify-self: end; }
+    .row__tags { grid-area: tags; gap: 8px; margin-top: 8px; }
+    .row__arrow { grid-area: arrow; align-self: center; justify-self: end; margin-top: 8px; }
+  }
+
+  @media (max-width: 671px) {
+    .ix {
+      gap: 24px;
+      padding: 32px var(--pf-margin);
+    }
+    .ix__title,
+    .ix__count {
+      font-size: 24px;
+      line-height: 32px;
+    }
+    .bar__label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+    }
+    .bar__actions {
+      flex: 1;
+      justify-content: space-between;
+    }
+    .bar__text {
+      display: none;
+    }
+    .bar__btn {
+      padding: 4px 8px;
+      height: 24px;
+    }
+  }
+</style>

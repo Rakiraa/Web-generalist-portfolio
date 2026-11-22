@@ -1,0 +1,131 @@
+@use './carbon';
+
+// Layout rules from the Figma specs card:
+// desktop 1584 → 16 columns, 32px gutter, 40px margin; mobile 402 → 4 columns, 32px gutter, 16px margin.
+:root {
+  --pf-margin: 40px;
+  --pf-max: 1584px;
+  --pf-ease-productive: cubic-bezier(0.2, 0, 0.38, 0.9);
+  --pf-ease-expressive: cubic-bezier(0.4, 0.14, 0.3, 1);
+  --pf-fast: 110ms;
+}
+
+@media (max-width: 671px) {
+  :root {
+    --pf-margin: 16px;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--cds-background);
+  color: var(--cds-text-primary);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+p,
+ul,
+ol,
+figure {
+  margin: 0;
+  padding: 0;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+a {
+  color: var(--cds-link-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--cds-link-primary-hover);
+  text-decoration: underline;
+}
+
+:focus-visible {
+  outline: 2px solid var(--cds-focus);
+  outline-offset: -2px;
+}
+
+em {
+  font-style: italic;
+}
+
+.page {
+  max-width: var(--pf-max);
+  margin-inline: auto;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.mono {
+  font-family: 'IBM Plex Mono', Menlo, Consolas, monospace;
+}
+
+.serif {
+  font-family: 'IBM Plex Serif', Georgia, serif;
+}
+
+// Type, on the IBM scale. Tracking: 0.32px at 12, 0.16px at 14, 0 above.
+.t-label {
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.32px;
+}
+
+.t-body-compact {
+  font-size: 14px;
+  line-height: 18px;
+  letter-spacing: 0.16px;
+}
+
+.t-body {
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.16px;
+}
+
+.c-primary { color: var(--cds-text-primary); }
+.c-secondary { color: var(--cds-text-secondary); }
+.c-helper { color: var(--cds-text-helper); }
+.c-link { color: var(--cds-link-primary); }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
+}

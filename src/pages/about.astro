@@ -1,0 +1,224 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { aboutIntro, academics, biography, clients, experience, expertise, recognitions, type Entry } from '../data/about';
+import { contactLinks, site } from '../data/site';
+
+const lists: { label: string; entries: Entry[] }[] = [
+  { label: 'Experience', entries: experience },
+  { label: 'Academics', entries: academics },
+  { label: 'Recognitions', entries: recognitions },
+];
+---
+
+<Base current="about" title="About — Rafael Akira" description={aboutIntro}>
+  <PageHeader title="About" intro={aboutIntro} />
+
+  <div class="ab">
+    <section class="ab__sec" aria-label="Profile">
+      <div class="ab__label-col">
+        <nav class="contact t-label" aria-label="Contact">
+          <p class="contact__name c-secondary">{site.name}</p>
+          <ul>
+            {
+              contactLinks.map((l) => (
+                <li>{l.href ? <a href={l.href} rel="noopener">{l.label} ↗</a> : <span>{l.label} ↗</span>}</li>
+              ))
+            }
+          </ul>
+          <a class="contact__email c-secondary" href={`mailto:${site.email}`}>{site.email}</a>
+        </nav>
+      </div>
+      <div class="ab__content">
+        <figure class="portrait mono t-label" aria-label="Portrait placeholder">
+          <span>IMAGE</span>
+          <span>Portrait, lit on dark</span>
+        </figure>
+        <div class="bio">
+          {biography.map((p) => <p>{p}</p>)}
+        </div>
+      </div>
+    </section>
+
+    {
+      lists.slice(0, 1).map((l) => (
+        <section class="ab__sec" aria-labelledby={`ab-${l.label}`}>
+          <div class="ab__label-col">
+            <h2 class="ab__label t-label" id={`ab-${l.label}`}>{l.label}</h2>
+          </div>
+          <div class="ab__content">
+            <ul class="entries serif t-label">
+              {l.entries.map((e) => (
+                <li>
+                  <p class="c-secondary">{e.title}</p>
+                  <p class="c-helper"><em>{e.when}</em></p>
+                  {e.text && <p class="c-helper">{e.text}</p>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      ))
+    }
+
+    <section class="ab__sec" aria-labelledby="ab-expertise">
+      <div class="ab__label-col">
+        <h2 class="ab__label t-label" id="ab-expertise">Expertise</h2>
+      </div>
+      <div class="ab__content ab__cols">
+        {
+          Object.entries(expertise).map(([head, items]) => (
+            <div>
+              <h3 class="ab__label t-label">{head}</h3>
+              <ul class="serif t-label c-helper">
+                {items.map((i) => <li>{i}</li>)}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    {
+      lists.slice(1).map((l) => (
+        <section class="ab__sec" aria-labelledby={`ab-${l.label}`}>
+          <div class="ab__label-col">
+            <h2 class="ab__label t-label" id={`ab-${l.label}`}>{l.label}</h2>
+          </div>
+          <div class="ab__content">
+            <ul class="entries serif t-label">
+              {l.entries.map((e) => (
+                <li>
+                  <p class="c-secondary">{e.title}</p>
+                  <p class="c-helper"><em>{e.when}</em></p>
+                  {e.text && <p class="c-helper">{e.text}</p>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      ))
+    }
+
+    <section class="ab__sec" aria-labelledby="ab-clients">
+      <div class="ab__label-col">
+        <h2 class="ab__label t-label" id="ab-clients">Clients</h2>
+      </div>
+      <div class="ab__content ab__cols">
+        {
+          clients.map((col) => (
+            <ul class="serif t-label c-helper">
+              {col.map((i) => <li>{i}</li>)}
+            </ul>
+          ))
+        }
+      </div>
+    </section>
+  </div>
+</Base>
+
+<style>
+  /* Two halves of the 16-column grid: label column = 8 columns, content from column 9 */
+  .ab {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    padding: 40px var(--pf-margin);
+  }
+  .ab__sec {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid var(--cds-border-subtle-00);
+  }
+  .ab__sec:last-child {
+    border-bottom: 0;
+  }
+  .ab__label {
+    font-weight: 400;
+    color: var(--cds-text-secondary);
+  }
+  .contact {
+    display: flex;
+    flex-direction: column;
+    width: 256px;
+  }
+  .contact__name {
+    padding: 0 16px 8px;
+  }
+  .contact li > * {
+    display: block;
+    padding: 8px 16px;
+    color: var(--cds-text-helper);
+  }
+  .contact li > a:hover {
+    background: var(--cds-layer-hover-01);
+    color: var(--cds-text-primary);
+    text-decoration: none;
+  }
+  .contact__email {
+    padding: 8px 16px;
+    color: var(--cds-text-secondary);
+  }
+  .ab__content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 0;
+  }
+  .portrait {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    aspect-ratio: 736 / 475;
+    padding: 16px;
+    background: var(--cds-layer-01);
+    color: var(--cds-text-helper);
+  }
+  .bio {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    font-weight: 300;
+    font-size: 16px;
+    line-height: 24px;
+    color: var(--cds-text-primary);
+  }
+  .entries {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .ab__cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+  .ab__cols h3 {
+    margin-bottom: 16px;
+  }
+  @media (max-width: 1055px) {
+    .ab__sec {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+  }
+  @media (max-width: 671px) {
+    .ab {
+      gap: 32px;
+      padding: 32px var(--pf-margin);
+    }
+    .ab__sec {
+      padding-bottom: 32px;
+    }
+    .contact {
+      width: 100%;
+    }
+    .portrait {
+      aspect-ratio: 370 / 240;
+    }
+  }
+</style>
