@@ -24,7 +24,7 @@ const index = items.findIndex((i) => i.id === current);
       items.map((it, i) => (
         <li class="cs__li" data-index={i}>
           {it.disabled ? (
-            <span class="cs__item cs__item--disabled t-body-compact" role="link" aria-disabled="true" tabindex="0" aria-describedby={`tip-${it.id}`} data-cursor="-disabled">
+            <span class="cs__item cs__item--disabled t-body-compact" role="link" aria-disabled="true" tabindex="0" aria-describedby={`tip-${it.id}`}>
               {it.label}
               <span class="tip t-body" role="tooltip" id={`tip-${it.id}`}>
                 Under maintenance. Coming soon.

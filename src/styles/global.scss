@@ -129,26 +129,40 @@ em {
   }
 }
 
-// Cuberto mouse follower, colored with Carbon tokens
-.mf-cursor {
-  color: var(--cds-icon-primary);
-  z-index: 9000;
+// Pointer (src/scripts/cursor.ts): replaces the system cursor on mouse and trackpad, after azumbrunnen.me
+html.has-pointer,
+html.has-pointer * {
+  cursor: none !important;
 }
-.mf-cursor-text {
-  color: var(--cds-text-inverse);
-  font-family: 'IBM Plex Mono', Menlo, Consolas, monospace;
-  font-size: 12px;
-  line-height: 16px;
-  letter-spacing: 0.32px;
+.pointer {
+  position: fixed;
+  top: -100px;
+  left: -100px;
+  z-index: 9999;
+  width: 36px;
+  height: 36px;
+  border-radius: 100%;
+  background: color-mix(in srgb, var(--cds-icon-primary) 20%, transparent);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition-property: width, height, border-radius, transform;
+  transition-duration: 0.1s;
+  transition-timing-function: ease-out;
 }
-.mf-cursor.-disabled::before {
-  opacity: 0.4;
-  transform: scale(0.12);
+// snapping onto an element also eases the position
+.pointer.is-locked {
+  transition-property: width, height, left, top, border-radius;
 }
-@media (pointer: coarse) {
-  .mf-cursor {
-    display: none;
-  }
+.pointer.is-text {
+  width: 3px;
+  border-radius: 2px;
+  background: var(--cds-interactive);
+}
+.pointer.is-scrolling {
+  transition: none;
+}
+.pointer.is-out {
+  opacity: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

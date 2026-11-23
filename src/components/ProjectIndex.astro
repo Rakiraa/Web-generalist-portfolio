@@ -49,7 +49,7 @@ const dIcon = Object.fromEntries(disciplines.map((d) => [d.id, d]));
   <ol class="rows" data-rows>
     {
       projects.map((p) => (
-        <li class="row" data-d={p.d.join(' ')} data-reveal data-cursor-text="Soon">
+        <li class="row" data-d={p.d.join(' ')} data-reveal>
           <span class="row__n mono t-label">{p.n}</span>
           <span class="row__title">{p.title}</span>
           <span class="row__meta">

@@ -1,10 +1,10 @@
-// Shared motion: GSAP setup, progressive reveal, content-only page swaps, and Cuberto's mouse follower.
+// Shared motion: GSAP setup, progressive reveal, content-only page swaps, and the custom pointer.
 // Everything respects prefers-reduced-motion.
 import { gsap } from 'gsap';
 import { CustomEase } from 'gsap/CustomEase';
 import { Flip } from 'gsap/Flip';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import MouseFollower from 'mouse-follower';
+import { mountCursor } from './cursor';
 
 gsap.registerPlugin(CustomEase, Flip, ScrollTrigger);
 // Carbon motion curves
@@ -64,8 +64,9 @@ document.addEventListener('astro:before-swap', () => {
 });
 
 document.addEventListener('astro:after-swap', () => {
+  // the swap replaces the <html> attributes, so restore the class that gates the reveal styles
+  document.documentElement.classList.add('js');
   window.scrollTo({ top: keepY, left: 0, behavior: 'instant' });
-  if (follower) document.body.appendChild(follower.el);
 });
 
 let firstLoad = true;
@@ -80,17 +81,5 @@ document.addEventListener('astro:page-load', () => {
   ScrollTrigger.refresh();
 });
 
-// ---------- Cuberto mouse follower (fine pointers only), colored with Carbon tokens in global.scss
-let follower: (MouseFollower & { el: HTMLElement }) | null = null;
-if (window.matchMedia('(pointer: fine)').matches && !reduceMotion()) {
-  MouseFollower.registerGSAP(gsap);
-  follower = new MouseFollower({
-    speed: 0.55,
-    skewing: 1.5,
-    skewingText: 1,
-    stateDetection: {
-      '-pointer': 'a, button',
-      '-hidden': 'iframe',
-    },
-  }) as MouseFollower & { el: HTMLElement };
-}
+// ---------- pointer (mouse and trackpad only), see cursor.ts
+mountCursor();
