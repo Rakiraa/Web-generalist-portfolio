@@ -1,6 +1,6 @@
 ---
-// Carbon content switcher (small, 32px). Lab and Memo are disabled until those pages exist; hovering or
-// focusing them shows a Carbon tooltip: "Under maintenance. Coming soon."
+// Carbon content switcher (small, 32px). The selection is a thumb that slides between Work and About while
+// only the content below changes. Lab and Memo stay disabled with a Carbon tooltip until those pages exist.
 import Icon from './Icon.astro';
 
 interface Props {
@@ -10,27 +10,29 @@ interface Props {
 const { current } = Astro.props;
 const items = [
   { id: 'work', label: 'Work', href: '/', icon: 'sunrise' },
-  { id: 'lab', label: 'Lab', icon: 'chemistry', disabled: true },
-  { id: 'memo', label: 'Memo', icon: 'data--view--alt', disabled: true },
-  { id: 'about', label: 'About', href: '/about', icon: 'fingerprint-recognition' },
+  { id: 'lab', label: 'Lab', disabled: true },
+  { id: 'memo', label: 'Memo', disabled: true },
+  { id: 'about', label: 'About', href: '/about/', icon: 'fingerprint-recognition' },
 ];
+const index = items.findIndex((i) => i.id === current);
 ---
 
-<nav class="cs-bar" aria-label="Sections">
-  <ul class="cs">
+<nav class="cs-bar" aria-label="Sections" data-reveal>
+  <ul class="cs" data-switcher>
+    <li class="cs__thumb" role="presentation" aria-hidden="true" style={`left: ${index * 25}%`} data-thumb></li>
     {
-      items.map((it) => (
-        <li class="cs__li">
+      items.map((it, i) => (
+        <li class="cs__li" data-index={i}>
           {it.disabled ? (
-            <span class="cs__item cs__item--disabled t-body-compact" role="link" aria-disabled="true" tabindex="0" aria-describedby={`tip-${it.id}`}>
+            <span class="cs__item cs__item--disabled t-body-compact" role="link" aria-disabled="true" tabindex="0" aria-describedby={`tip-${it.id}`} data-cursor="-disabled">
               {it.label}
               <span class="tip t-body" role="tooltip" id={`tip-${it.id}`}>
                 Under maintenance. Coming soon.
               </span>
             </span>
           ) : (
-            <a class="cs__item t-body-compact" href={it.href} aria-current={current === it.id ? 'page' : undefined}>
-              {current === it.id && <Icon name={it.icon} />}
+            <a class="cs__item t-body-compact" href={it.href} data-path={it.href} aria-current={current === it.id ? 'page' : undefined}>
+              <span class="cs__icon">{it.icon && <Icon name={it.icon} />}</span>
               {it.label}
             </a>
           )}
@@ -40,17 +42,57 @@ const items = [
   </ul>
 </nav>
 
+<script>
+  import { gsap, reduceMotion } from '../scripts/motion';
+
+  const list = document.querySelector<HTMLElement>('[data-switcher]');
+  if (list) {
+    const thumb = list.querySelector<HTMLElement>('[data-thumb]');
+    const links = [...list.querySelectorAll<HTMLAnchorElement>('a[data-path]')];
+    const norm = (p: string) => (p.replace(/\/+$/, '') || '/');
+
+    const select = (path: string) => {
+      const link = links.find((a) => norm(a.dataset.path ?? '') === norm(path));
+      if (!link || !thumb) return;
+      links.forEach((a) => (a === link ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')));
+      const i = +(link.closest<HTMLElement>('[data-index]')?.dataset.index ?? 0);
+      if (reduceMotion()) {
+        thumb.style.left = `${i * 25}%`;
+        return;
+      }
+      gsap.to(thumb, { left: `${i * 25}%`, duration: 0.5, ease: 'expressive', overwrite: true });
+      // a small squash while it travels
+      gsap.fromTo(thumb, { scaleX: 1 }, { scaleX: 1.08, duration: 0.18, ease: 'productive', yoyo: true, repeat: 1, overwrite: false });
+    };
+
+    links.forEach((a) => a.addEventListener('click', () => select(a.dataset.path ?? '/')));
+    // back/forward and any other navigation
+    document.addEventListener('astro:after-swap', () => select(location.pathname));
+  }
+</script>
+
 <style>
   .cs-bar {
     padding: 40px var(--pf-margin);
     background: var(--cds-background);
   }
   .cs {
+    position: relative;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     width: 381px;
     border: 1px solid var(--cds-border-inverse);
     border-radius: 4px;
+  }
+  .cs__thumb {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 25%;
+    border-radius: 3px;
+    background: var(--cds-layer-selected-inverse);
+    transform-origin: center;
+    pointer-events: none;
   }
   .cs__li {
     position: relative;
@@ -65,37 +107,49 @@ const items = [
     bottom: 7px;
     width: 1px;
     background: var(--cds-border-subtle-01);
+    transition: opacity var(--pf-fast) var(--pf-ease-productive);
   }
   .cs__li:has(> [aria-current='page'])::before,
   .cs__li:has(> [aria-current='page']) + .cs__li::before {
-    display: none;
+    opacity: 0;
   }
   .cs__item {
     position: relative;
+    z-index: 1;
     flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
     height: 30px;
     padding: 0 12px;
     border-radius: 3px;
     color: var(--cds-text-secondary);
     white-space: nowrap;
-    transition: background var(--pf-fast) var(--pf-ease-productive), color var(--pf-fast) var(--pf-ease-productive);
+    transition: color 240ms var(--pf-ease-productive), background var(--pf-fast) var(--pf-ease-productive);
+  }
+  .cs__icon {
+    display: inline-flex;
+    width: 0;
+    margin-right: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: width 240ms var(--pf-ease-expressive), margin 240ms var(--pf-ease-expressive), opacity 240ms var(--pf-ease-productive);
   }
   a.cs__item:hover {
-    background: var(--cds-layer-hover-01);
     color: var(--cds-text-primary);
     text-decoration: none;
   }
-  .cs__item[aria-current='page'] {
-    background: var(--cds-layer-selected-inverse);
+  a.cs__item:not([aria-current]):hover {
+    background: var(--cds-layer-hover-01);
+  }
+  .cs__item[aria-current='page'],
+  .cs__item[aria-current='page']:hover {
     color: var(--cds-text-inverse);
   }
-  .cs__item[aria-current='page']:hover {
-    background: var(--cds-layer-selected-inverse);
-    color: var(--cds-text-inverse);
+  .cs__item[aria-current='page'] .cs__icon {
+    width: 16px;
+    margin-right: 8px;
+    opacity: 1;
   }
   .cs__item--disabled {
     color: var(--cds-text-disabled);
@@ -116,8 +170,8 @@ const items = [
     white-space: normal;
     opacity: 0;
     visibility: hidden;
-    transform: translateX(-50%);
-    transition: opacity var(--pf-fast) var(--pf-ease-productive), visibility var(--pf-fast) var(--pf-ease-productive);
+    transform: translate(-50%, -4px);
+    transition: opacity var(--pf-fast) var(--pf-ease-productive), transform 240ms var(--pf-ease-expressive), visibility var(--pf-fast) var(--pf-ease-productive);
     pointer-events: none;
   }
   .tip::before {
@@ -134,6 +188,7 @@ const items = [
   .cs__item--disabled:focus-visible .tip {
     opacity: 1;
     visibility: visible;
+    transform: translate(-50%, 0);
   }
   @media (max-width: 671px) {
     .cs-bar {

@@ -1,14 +1,32 @@
 ---
+// Navbar clock — follows the Figma "navbar clock" component set (time = sunrise | morning | sunset | night):
+// sunrise → Sunrise icon, "Good morning"; morning → Sun icon, "Good afternoon"   (icon: support-warning, yellow)
+// sunset  → Sunset icon,  "Good evening"; night   → Moon icon, "Good night"        (icon: support-info, blue)
+// The time is São Paulo's; the colon blinks once per second.
 import Icon from './Icon.astro';
+
+const periods = [
+  { id: 'sunrise', icon: 'sunrise', tone: 'warm' },
+  { id: 'morning', icon: 'sun', tone: 'warm' },
+  { id: 'sunset', icon: 'sunset', tone: 'cool' },
+  { id: 'night', icon: 'moon', tone: 'cool' },
+];
 ---
 
-<header class="hdr">
-  <p class="hdr__greeting t-body" data-greeting>
-    <span class="hdr__icon" data-period="morning"><Icon name="sunrise" size={20} /></span>
-    <span class="hdr__icon" data-period="afternoon" hidden><Icon name="sun" size={20} /></span>
-    <span class="hdr__icon" data-period="evening" hidden><Icon name="sunset" size={20} /></span>
-    <span class="hdr__icon" data-period="night" hidden><Icon name="moon" size={20} /></span>
-    <span data-greeting-text>Hello from São Paulo</span>
+<header class="hdr" data-reveal>
+  <p class="hdr__clock t-body" data-navclock>
+    {
+      periods.map((p, i) => (
+        <span class={`hdr__icon hdr__icon--${p.tone}`} data-period={p.id} hidden={i !== 0}>
+          <Icon name={p.icon} size={20} />
+        </span>
+      ))
+    }
+    <span>
+      <span data-hello>Good morning</span>, it’s <time data-time
+        ><span data-h>9</span><span class="hdr__colon" data-colon>:</span><span data-m>00</span>&nbsp;<span data-ampm>AM</span></time
+      > in São Paulo
+    </span>
   </p>
   <a class="hdr__avatar" href="/about" aria-label="About Rafael Akira">
     <img src="/avatar.png" width="32" height="32" alt="" />
@@ -18,20 +36,44 @@ import Icon from './Icon.astro';
 
 <script>
   const TZ = 'America/Sao_Paulo';
-  function update() {
-    const root = document.querySelector('[data-greeting]');
-    if (!root) return;
-    const now = new Date();
-    const hour = +new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: '2-digit', hour12: false }).format(now) % 24;
-    const time = new Intl.DateTimeFormat('en-US', { timeZone: TZ, hour: 'numeric', minute: '2-digit' }).format(now);
-    const period = hour >= 5 && hour < 12 ? 'morning' : hour >= 12 && hour < 18 ? 'afternoon' : hour >= 18 && hour < 22 ? 'evening' : 'night';
-    const hello = period === 'night' ? 'Good night' : `Good ${period}`;
-    root.querySelectorAll<HTMLElement>('[data-period]').forEach((el) => (el.hidden = el.dataset.period !== period));
-    const text = root.querySelector('[data-greeting-text]');
-    if (text) text.textContent = `${hello}, it’s ${time} in São Paulo`;
+  const HELLO: Record<string, string> = { sunrise: 'Good morning', morning: 'Good afternoon', sunset: 'Good evening', night: 'Good night' };
+  const root = document.querySelector<HTMLElement>('[data-navclock]');
+  if (root) {
+    const q = (s: string) => root.querySelector<HTMLElement>(s);
+    const hEl = q('[data-h]'), mEl = q('[data-m]'), apEl = q('[data-ampm]'), helloEl = q('[data-hello]'), colon = q('[data-colon]'), timeEl = q('[data-time]');
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const parts = (d: Date) => {
+      const f = new Intl.DateTimeFormat('en-US', { timeZone: TZ, hour: 'numeric', minute: '2-digit', hour12: true }).formatToParts(d);
+      const get = (t: string) => f.find((p) => p.type === t)?.value ?? '';
+      const h24 = +new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: '2-digit', hour12: false }).format(d) % 24;
+      return { h: get('hour'), m: get('minute'), ap: get('dayPeriod'), h24 };
+    };
+    const period = (h: number) => (h >= 5 && h < 12 ? 'sunrise' : h >= 12 && h < 18 ? 'morning' : h >= 18 && h < 21 ? 'sunset' : 'night');
+    let lastMinute = '';
+    const tick = () => {
+      const now = new Date();
+      const p = parts(now);
+      const key = `${p.h}:${p.m}`;
+      if (key !== lastMinute) {
+        lastMinute = key;
+        if (hEl) hEl.textContent = p.h;
+        if (mEl) mEl.textContent = p.m;
+        if (apEl) apEl.textContent = p.ap;
+        const per = period(p.h24);
+        if (helloEl) helloEl.textContent = HELLO[per];
+        root.querySelectorAll<HTMLElement>('[data-period]').forEach((el) => (el.hidden = el.dataset.period !== per));
+        timeEl?.setAttribute('datetime', new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: '2-digit', minute: '2-digit', hour12: false }).format(now));
+      }
+      // the two dots flick: on for one second, off for the next
+      if (colon) colon.style.opacity = reduce.matches || now.getSeconds() % 2 === 0 ? '1' : '0';
+    };
+    tick();
+    // align ticks to the start of each second
+    window.setTimeout(() => {
+      tick();
+      window.setInterval(tick, 1000);
+    }, 1000 - (Date.now() % 1000));
   }
-  update();
-  setInterval(update, 30000);
 </script>
 
 <style>
@@ -43,19 +85,30 @@ import Icon from './Icon.astro';
     padding: 0 var(--pf-margin);
     background: var(--cds-background);
   }
-  .hdr__greeting {
+  .hdr__clock {
     flex: 1;
     display: flex;
     align-items: center;
     gap: 8px;
     color: var(--cds-text-primary);
+    font-variant-numeric: tabular-nums;
   }
   .hdr__icon {
     display: inline-flex;
-    color: var(--cds-support-warning);
   }
   .hdr__icon[hidden] {
     display: none;
+  }
+  .hdr__icon--warm {
+    color: var(--cds-support-warning);
+  }
+  .hdr__icon--cool {
+    color: var(--cds-support-info);
+  }
+  .hdr__colon {
+    display: inline-block;
+    width: 0.3em;
+    text-align: center;
   }
   .hdr__avatar {
     position: relative;

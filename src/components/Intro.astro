@@ -5,8 +5,8 @@ import { site } from '../data/site';
 
 <section class="intro" aria-labelledby="intro-statement">
   <div class="intro__kicker">
-    <p class="kicker">Hey! I'm <em>Akira →</em><br />Senior Lead Designer based in São Paulo ↷</p>
-    <div class="snippet">
+    <p class="kicker" data-reveal>Hey! I'm <em>Akira →</em><br />Senior Lead Designer based in São Paulo ↷</p>
+    <div class="snippet" data-reveal>
       <code class="snippet__code mono t-label"><span class="snippet__prompt">$</span> {site.npx}</code>
       <button class="snippet__copy" type="button" data-copy={site.npx} aria-label="Copy command">
         <Icon name="copy" />
@@ -14,13 +14,13 @@ import { site } from '../data/site';
       <span class="snippet__toast t-body-compact" role="status" aria-live="polite"></span>
     </div>
   </div>
-  <p class="statement" id="intro-statement">
+  <p class="statement" id="intro-statement" data-reveal>
     <span class="c-secondary">Rafael Akira</span> is a <em>systems thinker</em> and <em>designer</em>{' '}<br class="desk" />based in São Paulo, with <em>ten years</em> across intersection of{' '}<em class="c-secondary">brand expression</em>, <em
       class="c-secondary">craft</em
     > &amp; <em class="c-secondary">design systems</em>.
   </p>
-  <p class="statement statement--now">Currently at <a href="https://www.ibm.com" rel="noopener">IBM</a>.</p>
-  <a class="cue" href="#content" aria-label="Skip to content">↓</a>
+  <p class="statement statement--now" data-reveal>Currently at <a href="https://www.ibm.com" rel="noopener">IBM</a>.</p>
+  <a class="cue" href="#content" aria-label="Skip to content" data-reveal>↓</a>
 </section>
 
 <script>
@@ -71,8 +71,9 @@ import { site } from '../data/site';
     color: var(--cds-text-primary);
     white-space: nowrap;
   }
+  /* matches the Figma token Tag/Blue/tag-border-operational (#4589ff on Gray 100, #78a9ff on White) */
   .snippet__prompt {
-    color: var(--cds-text-helper);
+    color: var(--cds-tag-border-blue);
   }
   .snippet__copy {
     display: inline-flex;

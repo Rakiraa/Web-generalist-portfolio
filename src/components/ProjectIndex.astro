@@ -1,45 +1,55 @@
 ---
-// Work index: discipline filters in the Carbon batch-actions bar, live count, one line per project.
+// Work index: discipline filters in the Carbon batch-actions bar, a rolling counter, one line per project.
 import Icon from './Icon.astro';
 import Tag from './Tag.astro';
 import { accessIcon, disciplines, projects, workTypeIcon } from '../data/projects';
 
-const pad = (n: number) => String(n).padStart(3, '0');
+const digits = String(projects.length).padStart(3, '0').split('');
 const dIcon = Object.fromEntries(disciplines.map((d) => [d.id, d]));
 ---
 
-<section class="ix" aria-labelledby="ix-title" data-index>
-  <div class="ix__head">
+<section class="ix" aria-labelledby="ix-title" data-project-index>
+  <div class="ix__head" data-reveal>
     <div class="ix__titles">
       <p class="mono t-label c-link">INDEX</p>
       <h2 class="ix__title" id="ix-title">All projects, one line each</h2>
     </div>
-    <p class="ix__count mono" aria-hidden="true" data-count>{pad(projects.length)}</p>
+    <p class="ix__count mono" aria-hidden="true" data-count>
+      {
+        digits.map((d) => (
+          <span class="digit">
+            <span class="digit__strip" data-digit={d} style={`transform: translateY(-${+d * 10}%)`}>
+              {Array.from({ length: 10 }, (_, n) => <span>{n}</span>)}
+            </span>
+          </span>
+        ))
+      }
+    </p>
   </div>
 
-  <div class="bar" role="toolbar" aria-label="Filter projects by discipline">
+  <div class="bar" role="toolbar" aria-label="Filter projects by discipline" data-reveal>
     <p class="bar__label mono t-body" data-selected>0 items selected</p>
     <div class="bar__actions">
       {
         disciplines.map((d) => (
           <button class="bar__btn t-body-compact" type="button" aria-pressed="false" data-filter={d.id} aria-label={d.label}>
             <span class="bar__text">{d.label}</span>
-            <Icon name={d.icon} />
+            <span class="bar__icon"><Icon name={d.icon} /></span>
           </button>
         ))
       }
       <span class="bar__divider" aria-hidden="true"></span>
       <button class="bar__btn bar__btn--icon" type="button" data-reset aria-label="Clear filters">
-        <Icon name="reset" />
+        <span class="bar__icon"><Icon name="reset" /></span>
       </button>
     </div>
   </div>
   <p class="sr-only" aria-live="polite" data-status></p>
 
-  <ol class="rows">
+  <ol class="rows" data-rows>
     {
       projects.map((p) => (
-        <li class="row" data-d={p.d.join(' ')}>
+        <li class="row" data-d={p.d.join(' ')} data-reveal data-cursor-text="Soon">
           <span class="row__n mono t-label">{p.n}</span>
           <span class="row__title">{p.title}</span>
           <span class="row__meta">
@@ -67,39 +77,92 @@ const dIcon = Object.fromEntries(disciplines.map((d) => [d.id, d]));
 </section>
 
 <script>
-  document.querySelectorAll<HTMLElement>('[data-index]').forEach((root) => {
+  import { gsap, Flip, ScrollTrigger, reduceMotion } from '../scripts/motion';
+
+  function init() {
+    const root = document.querySelector<HTMLElement>('[data-project-index]');
+    if (!root || root.dataset.ready) return;
+    root.dataset.ready = '1';
     const buttons = [...root.querySelectorAll<HTMLButtonElement>('[data-filter]')];
     const rows = [...root.querySelectorAll<HTMLElement>('.row')];
-    const count = root.querySelector('[data-count]');
+    const strips = [...root.querySelectorAll<HTMLElement>('.digit__strip')];
     const selected = root.querySelector('[data-selected]');
     const status = root.querySelector('[data-status]');
     const active = new Set<string>();
-    const apply = () => {
-      let shown = 0;
-      rows.forEach((r) => {
-        const ds = (r.dataset.d ?? '').split(' ');
-        const show = active.size === 0 || ds.some((d) => active.has(d));
-        r.hidden = !show;
-        if (show) shown++;
+
+    // counter: three digit strips that roll up or down to the new number
+    strips.forEach((s) => {
+      gsap.set(s, { clearProps: 'transform' });
+      gsap.set(s, { yPercent: -10 * +(s.dataset.digit ?? 0) });
+    });
+    const roll = (n: number) => {
+      String(n).padStart(3, '0').split('').forEach((d, i) => {
+        const s = strips[i];
+        if (!s || s.dataset.digit === d) return;
+        s.dataset.digit = d;
+        if (reduceMotion()) gsap.set(s, { yPercent: -10 * +d });
+        else gsap.to(s, { yPercent: -10 * +d, duration: 0.7, ease: 'expressive', delay: (2 - i) * 0.06, overwrite: true });
       });
-      if (count) count.textContent = String(shown).padStart(3, '0');
+    };
+
+    const pop = (el: Element | null) => {
+      if (!el || reduceMotion()) return;
+      gsap.fromTo(el, { scale: 0.92 }, { scale: 1, duration: 0.4, ease: 'back.out(3)' });
+    };
+
+    const apply = () => {
+      const matches = (r: HTMLElement) => active.size === 0 || (r.dataset.d ?? '').split(' ').some((d) => active.has(d));
+      const shown = rows.filter(matches).length;
+      // rows still waiting for their scroll reveal become visible now, so filtering never hides them
+      rows.forEach((r) => {
+        if (!('revealed' in r.dataset)) {
+          r.dataset.revealed = '';
+          gsap.set(r, { autoAlpha: 1, y: 0 });
+        }
+      });
+      // the page height changed, so reveal triggers below the list (footer) need new positions
+      const settle = () => ScrollTrigger.refresh();
+      if (reduceMotion()) {
+        rows.forEach((r) => (r.hidden = !matches(r)));
+        settle();
+      } else {
+        const state = Flip.getState(rows);
+        rows.forEach((r) => (r.hidden = !matches(r)));
+        Flip.from(state, {
+          targets: rows,
+          duration: 0.5,
+          ease: 'expressive',
+          absolute: true,
+          onEnter: (els) => gsap.fromTo(els, { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.5, ease: 'expressive', stagger: 0.03 }),
+          onLeave: (els) => gsap.to(els, { autoAlpha: 0, y: -8, duration: 0.24, ease: 'exit' }),
+          onComplete: settle,
+        });
+      }
+      roll(shown);
       if (selected) selected.textContent = `${active.size} ${active.size === 1 ? 'item' : 'items'} selected`;
       if (status) status.textContent = `Showing ${shown} of ${rows.length} projects`;
       buttons.forEach((b) => b.setAttribute('aria-pressed', String(active.has(b.dataset.filter ?? ''))));
     };
+
     buttons.forEach((b) =>
       b.addEventListener('click', () => {
         const id = b.dataset.filter ?? '';
         if (active.has(id)) active.delete(id);
         else active.add(id);
+        pop(b.querySelector('.bar__icon'));
         apply();
       }),
     );
-    root.querySelector('[data-reset]')?.addEventListener('click', () => {
+    root.querySelector('[data-reset]')?.addEventListener('click', (e) => {
+      const icon = (e.currentTarget as HTMLElement).querySelector('.bar__icon');
+      if (icon && !reduceMotion()) gsap.fromTo(icon, { rotate: 0 }, { rotate: -360, duration: 0.6, ease: 'expressive' });
+      if (!active.size) return;
       active.clear();
       apply();
     });
-  });
+  }
+
+  document.addEventListener('astro:page-load', init);
 </script>
 
 <style>
@@ -127,10 +190,27 @@ const dIcon = Object.fromEntries(disciplines.map((d) => [d.id, d]));
     color: var(--cds-text-primary);
   }
   .ix__count {
+    --lh: 48px;
+    display: flex;
     font-weight: 300;
     font-size: 42px;
-    line-height: 48px;
+    line-height: var(--lh);
     color: var(--cds-text-helper);
+    font-variant-numeric: tabular-nums;
+  }
+  .digit {
+    display: block;
+    height: var(--lh);
+    overflow: hidden;
+  }
+  .digit__strip {
+    display: flex;
+    flex-direction: column;
+    will-change: transform;
+  }
+  .digit__strip > span {
+    display: block;
+    height: var(--lh);
   }
 
   /* Carbon batch actions bar, used as the discipline filter */
@@ -151,6 +231,7 @@ const dIcon = Object.fromEntries(disciplines.map((d) => [d.id, d]));
     align-items: center;
   }
   .bar__btn {
+    position: relative;
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -166,11 +247,26 @@ const dIcon = Object.fromEntries(disciplines.map((d) => [d.id, d]));
     cursor: pointer;
     transition: background var(--pf-fast) var(--pf-ease-productive);
   }
+  .bar__btn::after {
+    content: '';
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: 2px;
+    height: 1px;
+    background: var(--cds-icon-on-color);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 240ms var(--pf-ease-expressive);
+  }
   .bar__btn:hover {
     background: var(--cds-button-primary-hover);
   }
   .bar__btn[aria-pressed='true'] {
     background: var(--cds-button-primary-active);
+  }
+  .bar__btn[aria-pressed='true']::after {
+    transform: scaleX(1);
   }
   .bar__btn:focus-visible {
     outline: 2px solid var(--cds-focus-inverse);
@@ -178,6 +274,12 @@ const dIcon = Object.fromEntries(disciplines.map((d) => [d.id, d]));
   }
   .bar__btn--icon {
     padding: 3px 20px;
+  }
+  .bar__btn--icon::after {
+    display: none;
+  }
+  .bar__icon {
+    display: inline-flex;
   }
   .bar__divider {
     width: 1px;
@@ -187,6 +289,7 @@ const dIcon = Object.fromEntries(disciplines.map((d) => [d.id, d]));
 
   /* rows: desktop one line, below 1056 stacked as in the mobile design */
   .rows {
+    position: relative;
     display: flex;
     flex-direction: column;
   }
@@ -197,6 +300,7 @@ const dIcon = Object.fromEntries(disciplines.map((d) => [d.id, d]));
     gap: 24px;
     min-height: 56px;
     border-bottom: 1px solid var(--cds-border-subtle-00);
+    background: var(--cds-background);
   }
   .row[hidden] {
     display: none;
@@ -233,6 +337,13 @@ const dIcon = Object.fromEntries(disciplines.map((d) => [d.id, d]));
   .row__arrow {
     display: inline-flex;
     color: var(--cds-link-primary);
+    transition: transform 240ms var(--pf-ease-expressive);
+  }
+  .row:hover .row__title {
+    color: var(--cds-text-primary);
+  }
+  .row:hover .row__arrow {
+    transform: translateX(4px);
   }
 
   @media (max-width: 1055px) {
@@ -260,10 +371,13 @@ const dIcon = Object.fromEntries(disciplines.map((d) => [d.id, d]));
       gap: 24px;
       padding: 32px var(--pf-margin);
     }
-    .ix__title,
-    .ix__count {
+    .ix__title {
       font-size: 24px;
       line-height: 32px;
+    }
+    .ix__count {
+      --lh: 32px;
+      font-size: 24px;
     }
     .bar__label {
       position: absolute;
@@ -282,6 +396,10 @@ const dIcon = Object.fromEntries(disciplines.map((d) => [d.id, d]));
     .bar__btn {
       padding: 4px 8px;
       height: 24px;
+    }
+    .bar__btn::after {
+      left: 8px;
+      right: 8px;
     }
   }
 </style>

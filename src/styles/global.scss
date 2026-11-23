@@ -121,6 +121,36 @@ em {
 .c-helper { color: var(--cds-text-helper); }
 .c-link { color: var(--cds-link-primary); }
 
+// Progressive reveal: hidden only when JS runs and motion is allowed (motion.ts reveals them)
+@media (prefers-reduced-motion: no-preference) {
+  html.js [data-reveal]:not([data-revealed]) {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+// Cuberto mouse follower, colored with Carbon tokens
+.mf-cursor {
+  color: var(--cds-icon-primary);
+  z-index: 9000;
+}
+.mf-cursor-text {
+  color: var(--cds-text-inverse);
+  font-family: 'IBM Plex Mono', Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.32px;
+}
+.mf-cursor.-disabled::before {
+  opacity: 0.4;
+  transform: scale(0.12);
+}
+@media (pointer: coarse) {
+  .mf-cursor {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

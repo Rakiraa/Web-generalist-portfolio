@@ -15,7 +15,7 @@ const lists: { label: string; entries: Entry[] }[] = [
   <PageHeader title="About" intro={aboutIntro} />
 
   <div class="ab">
-    <section class="ab__sec" aria-label="Profile">
+    <section class="ab__sec" data-reveal aria-label="Profile">
       <div class="ab__label-col">
         <nav class="contact t-label" aria-label="Contact">
           <p class="contact__name c-secondary">{site.name}</p>
@@ -42,7 +42,7 @@ const lists: { label: string; entries: Entry[] }[] = [
 
     {
       lists.slice(0, 1).map((l) => (
-        <section class="ab__sec" aria-labelledby={`ab-${l.label}`}>
+        <section class="ab__sec" data-reveal aria-labelledby={`ab-${l.label}`}>
           <div class="ab__label-col">
             <h2 class="ab__label t-label" id={`ab-${l.label}`}>{l.label}</h2>
           </div>
@@ -61,7 +61,7 @@ const lists: { label: string; entries: Entry[] }[] = [
       ))
     }
 
-    <section class="ab__sec" aria-labelledby="ab-expertise">
+    <section class="ab__sec" data-reveal aria-labelledby="ab-expertise">
       <div class="ab__label-col">
         <h2 class="ab__label t-label" id="ab-expertise">Expertise</h2>
       </div>
@@ -81,7 +81,7 @@ const lists: { label: string; entries: Entry[] }[] = [
 
     {
       lists.slice(1).map((l) => (
-        <section class="ab__sec" aria-labelledby={`ab-${l.label}`}>
+        <section class="ab__sec" data-reveal aria-labelledby={`ab-${l.label}`}>
           <div class="ab__label-col">
             <h2 class="ab__label t-label" id={`ab-${l.label}`}>{l.label}</h2>
           </div>
@@ -100,7 +100,7 @@ const lists: { label: string; entries: Entry[] }[] = [
       ))
     }
 
-    <section class="ab__sec" aria-labelledby="ab-clients">
+    <section class="ab__sec" data-reveal aria-labelledby="ab-clients">
       <div class="ab__label-col">
         <h2 class="ab__label t-label" id="ab-clients">Clients</h2>
       </div>

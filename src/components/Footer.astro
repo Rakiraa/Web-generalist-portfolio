@@ -4,10 +4,10 @@ const year = 2026;
 ---
 
 <footer class="ft">
-  <h2 class="ft__title">Let’s talk.</h2>
+  <h2 class="ft__title" data-reveal>Let’s talk.</h2>
 
   <div class="ft__desk">
-    <div class="ft__contact">
+    <div class="ft__contact" data-reveal>
       <p class="ft__availability">{site.availability}</p>
       <ul class="ft__links mono t-body">
         {
@@ -17,13 +17,13 @@ const year = 2026;
         }
       </ul>
     </div>
-    <div class="ft__legal mono t-label">
+    <div class="ft__legal mono t-label" data-reveal>
       <span>© {year} Rafael Akira</span>
       <span>Built with love, made in Brazil.</span>
     </div>
   </div>
 
-  <div class="ft__mob mono t-label">
+  <div class="ft__mob mono t-label" data-reveal>
     <p class="c-secondary">
       {
         footerLinks.slice(0, 3).map((l, i) => (
