@@ -57,12 +57,13 @@ export function mountClockField(root) {
   let colors = {};
   let lastCell = null;
 
-  // ---------- colors (Carbon tokens, re-read when the theme changes)
+  // ---------- colors (Carbon tokens, re-read when the theme changes). The widget sits on layer-01 (as in Figma),
+  // so the dials step up to layer-02 to stay visible on it.
   function readColors() {
     const cs = getComputedStyle(root);
     const v = (name) => cs.getPropertyValue(name).trim();
     colors = {
-      dial: v('--cds-layer-01'),
+      dial: v('--cds-layer-02'),
       q: v('--cds-border-subtle-01'),
       s: v('--cds-border-strong-01'),
       g: v('--cds-border-strong-01'),
@@ -73,12 +74,14 @@ export function mountClockField(root) {
     };
   }
 
-  // ---------- layout: full field (66 × 20) from 1056px, compact field (33 × 11, pitch ≤ 24px) below
+  // ---------- layout: full field (66 × 20) from 1056px; compact field (33 × 11, pitch ≤ 24px) from 672px;
+  // tall compact field on phones (33 × 17, e.g. 402 × 208), the same compositions at the full field's proportions
   function computeLayout() {
     const cssW = Math.max(1, Math.round(root.clientWidth));
     let nx, ny, pitch;
     if (cssW >= 1056) { nx = 66; ny = 20; pitch = cssW / 66; }
-    else { ny = 11; pitch = Math.min(24, cssW / 33); nx = Math.max(33, Math.floor(cssW / pitch)); }
+    else if (cssW >= 672) { ny = 11; pitch = Math.min(24, cssW / 33); nx = Math.max(33, Math.floor(cssW / pitch)); }
+    else { nx = 33; ny = 17; pitch = cssW / 33; }
     const k = pitch / 24;
     const cssH = Math.round((ny * 24 + 2) * k);
     const offsetX = (cssW - nx * 24 * k) / 2;
@@ -349,6 +352,8 @@ export function mountClockField(root) {
   }).observe(root);
   document.addEventListener('visibilitychange', () => { if (document.hidden) window.clearTimeout(timer); else schedule(HOLD_MS); });
   scheme.addEventListener('change', () => { readColors(); draw(performance.now()); });
+  // the site switches White / Gray 100 with São Paulo's day and night (data-theme on <html>)
+  new MutationObserver(() => { readColors(); draw(performance.now()); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   canvas.addEventListener('pointermove', onMove);
   canvas.addEventListener('pointerleave', () => { lastCell = null; });
   canvas.addEventListener('click', onClick);

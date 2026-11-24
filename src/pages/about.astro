@@ -1,224 +1,414 @@
 ---
+// About, as in the Figma "Ready to deploy V2 — Clean" About frames: header with portrait, four facts, then
+// Profile, Experience, Expertise, Education and Recognition as heading + content halves (stacked on mobile).
 import Base from '../layouts/Base.astro';
-import PageHeader from '../components/PageHeader.astro';
-import { aboutIntro, academics, biography, clients, experience, expertise, recognitions, type Entry } from '../data/about';
+import {
+  aboutLead,
+  aboutTitle,
+  bioLead,
+  biography,
+  education,
+  experience,
+  expertise,
+  facts,
+  recognition,
+  type Entry,
+} from '../data/about';
 import { contactLinks, site } from '../data/site';
 
-const lists: { label: string; entries: Entry[] }[] = [
-  { label: 'Experience', entries: experience },
-  { label: 'Academics', entries: academics },
-  { label: 'Recognitions', entries: recognitions },
+const lists: { id: string; label: string; entries: Entry[] }[] = [
+  { id: 'experience', label: 'Experience', entries: experience },
+  { id: 'education', label: 'Education', entries: education },
+  { id: 'recognition', label: 'Recognition', entries: recognition },
 ];
+const linkColumns = [contactLinks.slice(0, 4), contactLinks.slice(4)];
 ---
 
-<Base current="about" title="About — Rafael Akira" description={aboutIntro}>
-  <PageHeader title="About" intro={aboutIntro} />
+<Base current="about" title="About — Rafael Akira" description={`${aboutTitle} ${aboutLead}`}>
+  <header class="ah">
+    <div class="ah__text">
+      <p class="mono t-label c-link" data-reveal>ABOUT</p>
+      <h1 class="ah__title" data-reveal>{aboutTitle}</h1>
+      <p class="ah__lead" data-reveal>{aboutLead}</p>
+    </div>
+    <img class="ah__portrait" src="/portrait.jpg" width="704" height="880" alt="Rafael Akira" loading="eager" decoding="async" data-reveal />
+  </header>
 
-  <div class="ab">
-    <section class="ab__sec" data-reveal aria-label="Profile">
-      <div class="ab__label-col">
-        <nav class="contact t-label" aria-label="Contact">
-          <p class="contact__name c-secondary">{site.name}</p>
-          <ul>
-            {
-              contactLinks.map((l) => (
-                <li>{l.href ? <a href={l.href} rel="noopener">{l.label} ↗</a> : <span>{l.label} ↗</span>}</li>
-              ))
-            }
-          </ul>
-          <a class="contact__email c-secondary" href={`mailto:${site.email}`}>{site.email}</a>
-        </nav>
-      </div>
-      <div class="ab__content">
-        <figure class="portrait mono t-label" aria-label="Portrait placeholder">
-          <span>IMAGE</span>
-          <span>Portrait, lit on dark</span>
-        </figure>
-        <div class="bio">
-          {biography.map((p) => <p>{p}</p>)}
-        </div>
-      </div>
-    </section>
-
+  <ul class="facts" data-reveal>
     {
-      lists.slice(0, 1).map((l) => (
-        <section class="ab__sec" data-reveal aria-labelledby={`ab-${l.label}`}>
-          <div class="ab__label-col">
-            <h2 class="ab__label t-label" id={`ab-${l.label}`}>{l.label}</h2>
-          </div>
-          <div class="ab__content">
-            <ul class="entries serif t-label">
-              {l.entries.map((e) => (
-                <li>
-                  <p class="c-secondary">{e.title}</p>
-                  <p class="c-helper"><em>{e.when}</em></p>
-                  {e.text && <p class="c-helper">{e.text}</p>}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
+      facts.map((f) => (
+        <li class="fact">
+          <span class="fact__figure">{f.figure}</span>
+          <span class="fact__text t-body-compact">{f.text}</span>
+        </li>
       ))
     }
+  </ul>
 
-    <section class="ab__sec" data-reveal aria-labelledby="ab-expertise">
-      <div class="ab__label-col">
-        <h2 class="ab__label t-label" id="ab-expertise">Expertise</h2>
-      </div>
-      <div class="ab__content ab__cols">
-        {
-          Object.entries(expertise).map(([head, items]) => (
-            <div>
-              <h3 class="ab__label t-label">{head}</h3>
-              <ul class="serif t-label c-helper">
-                {items.map((i) => <li>{i}</li>)}
+  <section class="sec" aria-labelledby="ab-profile">
+    <div class="sec__head">
+      <h2 class="sec__title" id="ab-profile" data-reveal>Profile</h2>
+      <nav class="elsewhere elsewhere--desk" aria-label="Elsewhere" data-reveal>
+        <p class="mono t-label c-helper">ELSEWHERE</p>
+        <div class="elsewhere__cols">
+          {
+            linkColumns.map((col) => (
+              <ul>
+                {col.map((l) => (
+                  <li>{l.href ? <a href={l.href} rel="noopener">{l.label} ↗</a> : <span>{l.label} ↗</span>}</li>
+                ))}
               </ul>
-            </div>
-          ))
-        }
-      </div>
-    </section>
+            ))
+          }
+        </div>
+        <a class="elsewhere__email" href={`mailto:${site.email}`}>{site.email}</a>
+      </nav>
+    </div>
+    <div class="sec__body">
+      <p class="bio__lead" data-reveal>{bioLead}</p>
+      {biography.map((p) => <p class="bio" data-reveal>{p}</p>)}
+      <nav class="elsewhere elsewhere--mob" aria-label="Elsewhere" data-reveal>
+        <p class="mono t-label c-helper">ELSEWHERE</p>
+        <div class="elsewhere__cols">
+          {
+            linkColumns.map((col) => (
+              <ul>
+                {col.map((l) => (
+                  <li>{l.href ? <a href={l.href} rel="noopener">{l.label} ↗</a> : <span>{l.label} ↗</span>}</li>
+                ))}
+              </ul>
+            ))
+          }
+        </div>
+        <a class="elsewhere__email" href={`mailto:${site.email}`}>{site.email}</a>
+      </nav>
+    </div>
+  </section>
 
-    {
-      lists.slice(1).map((l) => (
-        <section class="ab__sec" data-reveal aria-labelledby={`ab-${l.label}`}>
-          <div class="ab__label-col">
-            <h2 class="ab__label t-label" id={`ab-${l.label}`}>{l.label}</h2>
-          </div>
-          <div class="ab__content">
-            <ul class="entries serif t-label">
-              {l.entries.map((e) => (
-                <li>
-                  <p class="c-secondary">{e.title}</p>
-                  <p class="c-helper"><em>{e.when}</em></p>
-                  {e.text && <p class="c-helper">{e.text}</p>}
-                </li>
+  {
+    lists.slice(0, 1).map((l) => (
+      <section class="sec" aria-labelledby={`ab-${l.id}`}>
+        <div class="sec__head">
+          <h2 class="sec__title" id={`ab-${l.id}`} data-reveal>{l.label}</h2>
+        </div>
+        <ol class="sec__body entries">
+          {l.entries.map((e) => (
+            <li class="entry" data-reveal>
+              <span class="entry__when mono t-label">{e.when}</span>
+              <div class="entry__text">
+                <p class="entry__title">{e.title}</p>
+                {e.text && <p class="entry__desc t-body">{e.text}</p>}
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+    ))
+  }
+
+  <section class="sec" aria-labelledby="ab-expertise">
+    <div class="sec__head">
+      <h2 class="sec__title" id="ab-expertise" data-reveal>Expertise</h2>
+    </div>
+    <div class="sec__body expertise">
+      {
+        expertise.map((g) => (
+          <div class="expertise__col" data-reveal>
+            <h3 class="mono t-label c-helper">{g.label.toUpperCase()}</h3>
+            <ul class="expertise__list">
+              {g.items.map((i) => (
+                <li>{i}</li>
               ))}
             </ul>
           </div>
-        </section>
-      ))
-    }
+        ))
+      }
+    </div>
+  </section>
 
-    <section class="ab__sec" data-reveal aria-labelledby="ab-clients">
-      <div class="ab__label-col">
-        <h2 class="ab__label t-label" id="ab-clients">Clients</h2>
-      </div>
-      <div class="ab__content ab__cols">
-        {
-          clients.map((col) => (
-            <ul class="serif t-label c-helper">
-              {col.map((i) => <li>{i}</li>)}
-            </ul>
-          ))
-        }
-      </div>
-    </section>
-  </div>
+  {
+    lists.slice(1).map((l) => (
+      <section class="sec" aria-labelledby={`ab-${l.id}`}>
+        <div class="sec__head">
+          <h2 class="sec__title" id={`ab-${l.id}`} data-reveal>{l.label}</h2>
+        </div>
+        <ol class="sec__body entries">
+          {l.entries.map((e) => (
+            <li class="entry" data-reveal>
+              <span class="entry__when mono t-label">{e.when}</span>
+              <div class="entry__text">
+                <p class="entry__title">{e.title}</p>
+                {e.text && <p class="entry__desc t-body">{e.text}</p>}
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+    ))
+  }
 </Base>
 
 <style>
-  /* Two halves of the 16-column grid: label column = 8 columns, content from column 9 */
-  .ab {
+  /* Desktop: 1504 live area, halves of 736 + 32 gutter. Mobile (< 672): one column, 16px margins. */
+  .ah {
     display: flex;
-    flex-direction: column;
-    gap: 40px;
-    padding: 40px var(--pf-margin);
-  }
-  .ab__sec {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    justify-content: space-between;
+    align-items: flex-start;
     gap: 32px;
-    padding-bottom: 40px;
-    border-bottom: 1px solid var(--cds-border-subtle-00);
+    padding: 80px var(--pf-margin) 96px;
   }
-  .ab__sec:last-child {
-    border-bottom: 0;
-  }
-  .ab__label {
-    font-weight: 400;
-    color: var(--cds-text-secondary);
-  }
-  .contact {
+  .ah__text {
     display: flex;
     flex-direction: column;
-    width: 256px;
+    gap: 24px;
+    max-width: 928px;
   }
-  .contact__name {
-    padding: 0 16px 8px;
-  }
-  .contact li > * {
-    display: block;
-    padding: 8px 16px;
-    color: var(--cds-text-helper);
-  }
-  .contact li > a:hover {
-    background: var(--cds-layer-hover-01);
+  .ah__title {
+    font-weight: 300;
+    font-size: 76px;
+    line-height: 84px;
     color: var(--cds-text-primary);
-    text-decoration: none;
   }
-  .contact__email {
-    padding: 8px 16px;
+  .ah__lead {
+    max-width: 640px;
+    font-weight: 300;
+    font-size: 20px;
+    line-height: 28px;
     color: var(--cds-text-secondary);
   }
-  .ab__content {
+  .ah__portrait {
+    flex: none;
+    width: 352px;
+    height: 440px;
+    object-fit: cover;
+    background: var(--cds-layer-01);
+  }
+
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 32px;
+    padding: 0 var(--pf-margin) 120px;
+  }
+  .fact {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 16px;
+    border-top: 1px solid var(--cds-border-subtle-01);
+  }
+  .fact__figure {
+    font-weight: 300;
+    font-size: 54px;
+    line-height: 64px;
+    color: var(--cds-text-primary);
+  }
+  .fact__text {
+    color: var(--cds-text-secondary);
+  }
+
+  .sec {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 32px;
+    padding: 0 var(--pf-margin) 120px;
+  }
+  .sec__head {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+  .sec__title {
+    font-weight: 300;
+    font-size: 36px;
+    line-height: 44px;
+    color: var(--cds-text-primary);
+  }
+  .sec__body {
     display: flex;
     flex-direction: column;
     gap: 24px;
     min-width: 0;
   }
-  .portrait {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    aspect-ratio: 736 / 475;
-    padding: 16px;
-    background: var(--cds-layer-01);
-    color: var(--cds-text-helper);
+
+  .bio__lead {
+    font-weight: 300;
+    font-size: 24px;
+    line-height: 32px;
+    color: var(--cds-text-primary);
   }
   .bio {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
     font-weight: 300;
     font-size: 16px;
     line-height: 24px;
-    color: var(--cds-text-primary);
+    color: var(--cds-text-secondary);
   }
-  .entries {
+
+  .elsewhere {
     display: flex;
     flex-direction: column;
     gap: 16px;
   }
-  .ab__cols {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+  .elsewhere--mob {
+    display: none;
+  }
+  .elsewhere__cols {
+    display: flex;
     gap: 32px;
   }
-  .ab__cols h3 {
-    margin-bottom: 16px;
+  .elsewhere__cols ul {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 160px;
   }
+  .elsewhere__cols li > *,
+  .elsewhere__email {
+    font-size: 16px;
+    line-height: 24px;
+  }
+  .elsewhere__cols li > * {
+    color: var(--cds-text-secondary);
+  }
+  .elsewhere__cols a:hover {
+    color: var(--cds-text-primary);
+  }
+  .elsewhere__email {
+    align-self: flex-start;
+    color: var(--cds-link-primary);
+  }
+
+  .entries {
+    gap: 0;
+  }
+  .entry {
+    display: grid;
+    grid-template-columns: 176px minmax(0, 1fr);
+    gap: 32px;
+    padding: 24px 0;
+    border-top: 1px solid var(--cds-border-subtle-01);
+  }
+  .entry:last-child {
+    border-bottom: 1px solid var(--cds-border-subtle-01);
+  }
+  .entry__when {
+    color: var(--cds-text-helper);
+  }
+  .entry__text {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .entry__title {
+    font-size: 16px;
+    line-height: 24px;
+    color: var(--cds-text-primary);
+  }
+  .entry__desc {
+    color: var(--cds-text-secondary);
+  }
+
+  .expertise {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 32px;
+  }
+  .expertise__col {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--cds-border-subtle-01);
+  }
+  .expertise__col h3 {
+    font-weight: 400;
+  }
+  .expertise__list {
+    font-weight: 300;
+    font-size: 20px;
+    line-height: 36px;
+    color: var(--cds-text-primary);
+  }
+
+  /* below the full grid: halves stack, facts go two by two */
   @media (max-width: 1055px) {
-    .ab__sec {
-      grid-template-columns: 1fr;
+    .ah__title {
+      font-size: 54px;
+      line-height: 64px;
+    }
+    .facts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      row-gap: 32px;
+    }
+    .sec {
+      grid-template-columns: minmax(0, 1fr);
       gap: 24px;
     }
   }
+
   @media (max-width: 671px) {
-    .ab {
-      gap: 32px;
-      padding: 32px var(--pf-margin);
+    .ah {
+      flex-direction: column;
+      align-items: stretch;
+      padding: 48px var(--pf-margin);
     }
-    .ab__sec {
-      padding-bottom: 32px;
+    .ah__title {
+      font-size: 36px;
+      line-height: 44px;
     }
-    .contact {
+    .ah__lead {
+      font-weight: 300;
+      font-size: 16px;
+      line-height: 24px;
+    }
+    .ah__portrait {
       width: 100%;
+      height: 420px;
     }
-    .portrait {
-      aspect-ratio: 370 / 240;
+    .facts {
+      gap: 32px 16px;
+      padding: 0 var(--pf-margin) 64px;
+    }
+    .fact__figure {
+      font-size: 36px;
+      line-height: 44px;
+    }
+    .sec {
+      padding: 0 var(--pf-margin) 64px;
+    }
+    .sec__title {
+      font-size: 24px;
+      line-height: 32px;
+    }
+    .bio__lead {
+      font-size: 20px;
+      line-height: 28px;
+    }
+    .elsewhere--desk {
+      display: none;
+    }
+    .elsewhere--mob {
+      display: flex;
+      padding-top: 8px;
+    }
+    .elsewhere__cols {
+      gap: 32px;
+    }
+    .elsewhere__cols ul {
+      width: auto;
+      flex: 1;
+    }
+    .entry {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+      padding: 16px 0;
+    }
+    .expertise {
+      gap: 16px;
+    }
+    .expertise__list {
+      font-size: 16px;
+      line-height: 28px;
     }
   }
 </style>

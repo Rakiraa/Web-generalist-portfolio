@@ -3,7 +3,7 @@ export type Link = { label: string; href?: string };
 
 export const site = {
   name: 'Rafael Akira',
-  title: 'Rafael Akira — Senior Lead Designer, São Paulo',
+  title: 'Rafael Akira — Senior Designer, São Paulo',
   description:
     'Rafael Akira is a systems thinker and designer based in São Paulo, with ten years across brand expression, craft and design systems. Currently at IBM.',
   email: 'rakira.design@protonmail.com',

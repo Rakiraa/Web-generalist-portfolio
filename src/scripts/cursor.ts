@@ -1,11 +1,10 @@
 // Pointer modeled on azumbrunnen.me (an iPadOS-style pointer), rebuilt for this site with Carbon tokens.
 // - A 36px translucent circle follows the mouse directly, with no lag.
 // - Over headings and paragraphs it becomes a 3px text caret, 1.4 × the font size tall.
-// - Over buttons, links and project rows it snaps onto the element (its size and corner radius) in 0.1s,
-//   and the element leans up to 6px toward the pointer.
+// - Over buttons, links and project rows it snaps onto the element (its size and corner radius) in 0.1s.
+//   Neither the highlight nor the element moves with the pointer while locked (no parallax).
 // Mouse and trackpad only: touch devices keep the system behavior, and a touch turns the pointer off.
 
-const LEAN = 6;
 const TEXT = 'h1, h2, h3, h4, h5, h6, p, dd, dt, figcaption, blockquote';
 const LOCK = 'a[href], button:not(:disabled), [role="button"], .row';
 
@@ -26,9 +25,7 @@ export function mountCursor(): void {
   let mode: 'circle' | 'text' | 'lock' = 'circle';
   let textEl: Element | null = null;
   let target: HTMLElement | null = null; // the element the pointer is locked onto
-  let canLean = false;
-  let box: Box = { left: 0, top: 0, width: 0, height: 0 }; // its rect without the lean
-  let lean = { x: 0, y: 0 };
+  let box: Box = { left: 0, top: 0, width: 0, height: 0 }; // its rect
   let scrollEnd = 0;
   let frame = 0;
 
@@ -45,10 +42,7 @@ export function mountCursor(): void {
   };
 
   const release = () => {
-    if (!target) return;
-    target.style.transform = '';
     target = null;
-    lean = { x: 0, y: 0 };
   };
 
   const circle = () => {
@@ -62,7 +56,7 @@ export function mountCursor(): void {
   const measure = () => {
     if (!target) return;
     const r = target.getBoundingClientRect();
-    box = { left: r.left - lean.x, top: r.top - lean.y, width: r.width, height: r.height };
+    box = { left: r.left, top: r.top, width: r.width, height: r.height };
     el.style.left = `${box.left + box.width / 2}px`;
     el.style.top = `${box.top + box.height / 2}px`;
   };
@@ -73,7 +67,6 @@ export function mountCursor(): void {
     mode = 'lock';
     textEl = null;
     const cs = getComputedStyle(t);
-    canLean = cs.display !== 'inline'; // transforms do not apply to inline boxes
     el.classList.remove('is-text');
     el.classList.add('is-locked');
     measure();
@@ -106,20 +99,9 @@ export function mountCursor(): void {
     }
   };
 
-  // locked: the highlight sits on the element's center and both lean toward the pointer
+  // locked: the highlight stays on the element's center; otherwise it follows the pointer
   const place = () => {
-    if (!target) {
-      follow();
-      return;
-    }
-    const hw = box.width / 2;
-    const hh = box.height / 2;
-    const lx = hw ? Math.max(-1, Math.min(1, (x - box.left - hw) / hw)) : 0;
-    const ly = hh ? Math.max(-1, Math.min(1, (y - box.top - hh) / hh)) : 0;
-    el.style.transform = `translate(calc(-50% + ${lx}px), calc(-50% + ${ly}px))`;
-    if (!canLean || still()) return;
-    lean = { x: lx * LEAN, y: ly * LEAN };
-    target.style.transform = `translate(${lean.x}px, ${lean.y}px)`;
+    if (!target) follow();
   };
 
   document.addEventListener(
@@ -180,10 +162,7 @@ export function mountCursor(): void {
   // Work ⇄ About swaps <body> and the <html> attributes: put the pointer back and re-check what is under it
   document.addEventListener('astro:after-swap', () => {
     if (dead || !seen) return;
-    if (target && !target.isConnected) {
-      target = null;
-      lean = { x: 0, y: 0 };
-    }
+    if (target && !target.isConnected) target = null;
     attach();
     resolve(document.elementFromPoint(x, y));
     place();

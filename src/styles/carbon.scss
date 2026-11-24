@@ -1,5 +1,6 @@
-// Carbon tokens only. Gray 100 is the default theme; White follows the visitor's system preference.
-// `data-theme` on <html> can force either theme (handy for previews and screenshots).
+// Carbon tokens only. The page sets `data-theme` on <html> from São Paulo's time of day (White by day, Gray 100 by
+// night; see Base.astro and src/scripts/theme.ts). Without JavaScript, Gray 100 is the default and White follows
+// the visitor's system preference.
 @use '@carbon/styles/scss/themes';
 @use '@carbon/styles/scss/theme';
 @use '@carbon/styles/scss/colors';

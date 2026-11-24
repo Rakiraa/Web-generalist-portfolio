@@ -7,6 +7,8 @@ let NX=66,NY=20,W=1584,H=482;
 const P=24,L=11,DR=11.5,D2R=Math.PI/180,CX=792,CY=241;
 function setField(nx,ny){NX=nx;NY=ny;W=nx*P;H=ny*P+2}
 const FULL=()=>NX>=66;
+// tall compact field (phones, 33 × 17): the compact vocabulary at the full field's proportions
+const TALL=()=>!FULL()&&NY>=15;
 const X=i=>12+P*i,Y=j=>13+P*j;
 const cl=(v,a,b)=>v<a?a:v>b?b:v;
 const hs=(i,j,s)=>{const h=Math.sin(i*127.1+j*311.7+s*74.7)*43758.5453;return h-Math.floor(h)};
@@ -53,7 +55,7 @@ const WX={
   if(s>=.75)draw(g,[[ci+1,cj,ci-1,cj+2],[ci-1,cj+2,ci+2,cj+2],[ci+2,cj+2,ci-1,cj+5],[ci-1,cj+5,ci-1,cj+7]]);
   else draw(g,[[ci+1,cj,ci,cj+1],[ci,cj+1,ci+1,cj+1],[ci+1,cj+1,ci,cj+2],[ci,cj+2,ci,cj+3]]);
   const r1=Math.round(7*s),r2=Math.round(5*s),segs=[];for(const i of [ci-r1,ci-r2,ci+r2,ci+r1])for(let j=cj+(i%2);j+2<=LB();j+=4)segs.push([i,j,i,j+2]);draw(g,segs)},
- fog:(g,ox=0,oy=0,s=1)=>{const di=ox/P,dj=oy/P,segs=[];const F=s>=.75?[[6,20,44],[8,15,40],[10,24,50],[12,17,36],[12,40,47],[14,22,45]]:[[6,18,30],[8,15,27],[10,20,32],[12,16,25]];
+ fog:(g,ox=0,oy=0,s=1)=>{const di=ox/P,dj=oy/P,segs=[];const F=s>=.75&&FULL()?[[6,20,44],[8,15,40],[10,24,50],[12,17,36],[12,40,47],[14,22,45]]:[[6,18,30],[8,15,27],[10,20,32],[12,16,25]];
   F.forEach(([j,a,b])=>segs.push([a+di,j+dj,b+di,j+dj]));draw(g,segs)}
 };
 
@@ -95,7 +97,7 @@ function secondary(g,k,fb,s){
 }
 // weather: rest hands go quiet, the secondary layer fills the layout, the focal hangs from the top-left margin
 function weather(g,k,o={}){
- const s=o.s??(FULL()?1:.5);
+ const s=o.s??(FULL()?1:TALL()?.75:.5);
  const p=field();WX[k](p,0,0,s);let i0=1e9,j0=1e9,i1=-1,j1=-1;for(const c of p)if(c.ro==='p'&&!c.lit){i0=Math.min(i0,c.i);j0=Math.min(j0,c.j);i1=Math.max(i1,c.i);j1=Math.max(j1,c.j)}
  const di=1-i0,dj=1-j0,fb={i0:1,j0:1,i1:i1+di,j1:j1+dj};
  for(const c of g)c.ro='q';
@@ -115,7 +117,7 @@ const DIG=['abcdef','bc','abged','abgcd','fgbc','afgcd','afgedc','abc','abcdefg'
 function wind(g,bearingFrom,kmh=12){
  const t0=bearingFrom+90,co=Math.cos(t0*D2R),si=Math.sin(t0*D2R);
  const ang=(x,y)=>{const u=x*co+y*si,v=-x*si+y*co;return t0+20*Math.sin(2*Math.PI*u/440+v/220)+8*(ns(x/260,y/260,5)-.5)};
- const QZ=FULL()?[24,11]:[21,NY];
+ const QZ=FULL()?[24,11]:TALL()?[21,11]:[21,NY];
  const A=COL(0),B=COL(2),r1=1,r2=7,box={x0:-1,x1:X(QZ[0])+12,y0:-1,y1:Y(QZ[1])+12};
  const inBox=(x,y)=>x>box.x0&&x<box.x1&&y>box.y0&&y<box.y1;
  const DS=72,DT=36,G=new Map(),kk=(x,y)=>Math.floor(x/DS)+','+Math.floor(y/DS);
@@ -140,12 +142,17 @@ function wind(g,bearingFrom,kmh=12){
 
 // --- time, centred. Full field: outlined segments, 44 × 16 clocks. Compact field: single-line segments, 25 × 9 clocks, colon as two lit dials.
 const SEG={a:[2,0,6,1],g:[2,7,6,8],d:[2,14,6,15],f:[0,2,1,6],b:[7,2,8,6],e:[0,9,1,13],c:[7,9,8,13]};
+const SEG3={a:[1,0,3,0],f:[0,1,0,5],b:[4,1,4,5],g:[1,6,3,6],e:[0,7,0,11],c:[4,7,4,11],d:[1,12,3,12]};
 const SEG2={a:[1,0,3,0],b:[4,1,4,3],c:[4,5,4,7],d:[1,8,3,8],e:[0,5,0,7],f:[0,1,0,3],g:[1,4,3,4]};
 function time(g,hhmm){
  const ds=hhmm.replace(':','').split(''),on=[],off=[];
  if(FULL()){const i0=Math.floor((NX-44)/2),j0=Math.floor((NY-16)/2),xs=[0,10,25,35];
   ds.forEach((d,n)=>{for(const s in SEG){const [a,b,c,e]=SEG[s];(DIG[+d].includes(s)?on:off).push(...rect(i0+xs[n]+a,j0+b,i0+xs[n]+c,j0+e))}});
   on.push(...rect(i0+21,j0+4,i0+22,j0+5),...rect(i0+21,j0+10,i0+22,j0+11));draw(g,off,'g');draw(g,on,'p');return {i0,j0}}
+ if(TALL()){const i0=Math.floor((NX-25)/2),j0=Math.floor((NY-13)/2),xs=[0,6,14,20];
+  ds.forEach((d,n)=>{for(const s in SEG3){const [a,b,c,e]=SEG3[s];(DIG[+d].includes(s)?on:off).push([i0+xs[n]+a,j0+b,i0+xs[n]+c,j0+e])}});
+  draw(g,off,'g');draw(g,on,'p');for(const r of [4,8]){const c=at(g,i0+12,j0+r);c.lit=1;c.a1=c.a2=270;c.ro='p'}
+  return {i0,j0}}
  const i0=Math.floor((NX-25)/2),j0=Math.floor((NY-9)/2),xs=[0,6,14,20];
  ds.forEach((d,n)=>{for(const s in SEG2){const [a,b,c,e]=SEG2[s];(DIG[+d].includes(s)?on:off).push([i0+xs[n]+a,j0+b,i0+xs[n]+c,j0+e])}});
  draw(g,off,'g');draw(g,on,'p');for(const r of [3,5]){const c=at(g,i0+12,j0+r);c.lit=1;c.a1=c.a2=270;c.ro='p'}
@@ -186,4 +193,4 @@ function render(g,k=1,dy=0){
   {d:Q.t3,role:'trail',w:1,op:.3,name:'trail — tail'},{d:Q.t2,role:'trail',w:1,op:.6,name:'trail — mid'},{d:Q.t1,role:'trail',w:1,op:1,name:'trail — head'}];
 }
 
-export { setField, field, state, weather, wind, time, trail, X, Y, P, L, DR, D2R, IDLE, REST, NX, NY, W, H, FULL, radial, along, ltr, ttb, POINTS, EASE, DUR, STAG, cw };
+export { TALL, setField, field, state, weather, wind, time, trail, X, Y, P, L, DR, D2R, IDLE, REST, NX, NY, W, H, FULL, radial, along, ltr, ttb, POINTS, EASE, DUR, STAG, cw };

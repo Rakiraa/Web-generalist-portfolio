@@ -1,6 +1,6 @@
 ---
-// Hero widget: the clock field. 1584 × 482 at the max breakpoint (66 × 20 clocks), scaling down to 1056;
-// below that a compact 33 × 11 field (clocks ≤ 24px), e.g. 402 × 137 on mobile.
+// Hero widget: the clock field on layer-01. 1584 × 482 at the max breakpoint (66 × 20 clocks), scaling down to 1056;
+// a compact 33 × 11 field (clocks ≤ 24px) from 672; on phones a tall compact 33 × 17 field, e.g. 402 × 208.
 ---
 
 <section class="hero" aria-label="Live clock field" data-reveal>
@@ -17,12 +17,17 @@
 <style>
   .hero {
     container-type: inline-size;
-    background: var(--cds-background);
+    background: var(--cds-layer-01);
   }
   .cf {
     width: 100%;
-    /* reserve the final height before the script runs (no layout shift) */
-    height: min(266px, calc(100cqw * 266 / 792));
+    /* reserve the final height before the script runs (no layout shift): rows × 24 + 2 over 33 × 24 */
+    height: calc(100cqw * 410 / 792);
+  }
+  @container (min-width: 672px) {
+    .cf {
+      height: min(266px, calc(100cqw * 266 / 792));
+    }
   }
   @container (min-width: 1056px) {
     .cf {
