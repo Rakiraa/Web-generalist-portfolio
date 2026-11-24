@@ -142,21 +142,41 @@ html.has-pointer * {
   width: 36px;
   height: 36px;
   border-radius: 100%;
-  background: color-mix(in srgb, var(--cds-icon-primary) 20%, transparent);
+  // idle: a thin ring in the link blue (the "IBM" link in the intro) around a small dot of the same blue
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--cds-link-primary);
   transform: translate(-50%, -50%);
   pointer-events: none;
   transition-property: width, height, border-radius, transform;
   transition-duration: 0.1s;
   transition-timing-function: ease-out;
 }
-// snapping onto an element also eases the position
+.pointer::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cds-link-primary);
+  transform: translate(-50%, -50%);
+}
+.pointer.is-locked::after,
+.pointer.is-text::after {
+  opacity: 0;
+}
+// snapping onto an element: a soft highlight that takes the element's box, and also eases the position
 .pointer.is-locked {
+  background: color-mix(in srgb, var(--cds-icon-primary) 20%, transparent);
+  box-shadow: none;
   transition-property: width, height, left, top, border-radius;
 }
 .pointer.is-text {
   width: 3px;
   border-radius: 2px;
   background: var(--cds-interactive);
+  box-shadow: none;
 }
 .pointer.is-scrolling {
   transition: none;

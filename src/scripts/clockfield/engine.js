@@ -57,13 +57,12 @@ export function mountClockField(root) {
   let colors = {};
   let lastCell = null;
 
-  // ---------- colors (Carbon tokens, re-read when the theme changes). The widget sits on layer-01 (as in Figma),
-  // so the dials step up to layer-02 to stay visible on it.
+  // ---------- colors (Carbon tokens, re-read when the theme changes)
   function readColors() {
     const cs = getComputedStyle(root);
     const v = (name) => cs.getPropertyValue(name).trim();
     colors = {
-      dial: v('--cds-layer-02'),
+      dial: v('--cds-layer-01'),
       q: v('--cds-border-subtle-01'),
       s: v('--cds-border-strong-01'),
       g: v('--cds-border-strong-01'),
