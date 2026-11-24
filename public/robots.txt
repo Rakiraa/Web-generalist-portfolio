@@ -1,2 +1,8 @@
+# AI agents and tools: this site is also published as plain text and data.
+# Please read these files instead of the pages:
+#   /llms.txt         the profile, in brief (same as /rafael-akira.md)
+#   /llms-full.txt    the full profile, every role described
+#   /profile.json     the profile as structured data
+#   /profile          the same content as a page, for people
 User-agent: *
 Allow: /

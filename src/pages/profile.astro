@@ -1,0 +1,277 @@
+---
+// AI-readable profile: a minimal page with no site shell (no header, footer, pointer or scripts), always Gray 100.
+// The same content is served as /llms.txt, /rafael-akira.md, /llms-full.txt and /profile.json.
+import '@fontsource/ibm-plex-mono/400.css';
+import '../styles/global.scss';
+import { lines } from '../data/profile';
+import artDesktop from '../data/profile-art-desktop.json';
+import artMobile from '../data/profile-art-mobile.json';
+
+type ArtLine = [string, [number, number, string][]];
+// the art as coloured runs: [text, role | null]
+const runs = (art: ArtLine[]) =>
+  art.map(([line, segs]) => {
+      const out: [string, string | null][] = [];
+      let at = 0;
+      for (const [a, b, role] of segs) {
+        if (a > at) out.push([line.slice(at, a), null]);
+        out.push([line.slice(a, b), role]);
+        at = b;
+      }
+      if (at < line.length) out.push([line.slice(at), null]);
+      return out;
+  });
+const trim = (art: ArtLine[]) => {
+  const a = [...art];
+  while (a.length && !a[0][0].trim()) a.shift();
+  while (a.length && !a[a.length - 1][0].trim()) a.pop();
+  return a;
+};
+const desk = runs(trim(artDesktop as ArtLine[]));
+const mob = runs(trim(artMobile as ArtLine[]));
+const doc = lines();
+const title = 'Rafael Akira — AI-readable profile';
+const description = 'Rafael Akira’s portfolio as plain text for AI agents: profile, work, experience and contact, also served as /llms.txt and /profile.json.';
+---
+
+<!doctype html>
+<html lang="en" data-theme="g100" style="color-scheme: dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#161616" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate" type="text/markdown" href="/rafael-akira.md" title="Rafael Akira (markdown)" />
+    <link rel="alternate" type="application/json" href="/profile.json" title="Rafael Akira (JSON)" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+  </head>
+  <body>
+    <main class="doc">
+      <figure class="art" role="img" aria-label="ASCII drawing of a two-tone capsule, magenta and cyan, with アキラ (Akira) written vertically beside it.">
+        <pre class="art__desk" aria-hidden="true">{desk.map((row) => <span class="art__row">{row.map(([t, r]) => (r ? <span class={`a-${r}`}>{t}</span> : t))}</span>)}</pre>
+        <pre class="art__mob" aria-hidden="true">{mob.map((row) => <span class="art__row">{row.map(([t, r]) => (r ? <span class={`a-${r}`}>{t}</span> : t))}</span>)}</pre>
+      </figure>
+
+      <p class="file">
+        <span class="file__name">rafael-akira.md</span>
+        <a class="file__meta" href="/rafael-akira.md">markdown · utf-8</a>
+      </p>
+
+      <ol class="lines">
+        {
+          doc.map((l) => (
+            <li class={`line line--${l.kind}`}>
+              {l.kind === 'blank' && <span class="code">&nbsp;</span>}
+              {l.kind === 'h1' && (
+                <h1 class="code">
+                  <span class="r-mark"># </span>
+                  <span class="r-h1">{l.text}</span>
+                </h1>
+              )}
+              {l.kind === 'h2' && (
+                <h2 class="code">
+                  <span class="r-mark">## </span>
+                  <span class="r-head">{l.text}</span>
+                </h2>
+              )}
+              {l.kind === 'quote' && (
+                <blockquote class="code">
+                  <span class="r-mark">&gt; </span>
+                  <span class="r-text">{l.text}</span>
+                </blockquote>
+              )}
+              {l.kind === 'p' && (
+                <p class="code">
+                  {l.segs.map(([t, r]) => (
+                    <span class={`r-${r}`}>{t}</span>
+                  ))}
+                </p>
+              )}
+              {l.kind === 'kv' && (
+                <div class="code kv">
+                  {l.href && l.key[1] === 'key' && l.key[0].startsWith('/') ? (
+                    <a class={`kv__key r-${l.key[1]}`} href={l.href}>
+                      {l.key[0]}
+                    </a>
+                  ) : (
+                    <span class={`kv__key r-${l.key[1]}`}>{l.key[0]}</span>
+                  )}
+                  <span class="kv__value">
+                    {l.href && !l.key[0].startsWith('/') ? (
+                      <a class="r-link" href={l.href} rel={l.href.startsWith('http') ? 'noopener' : undefined}>
+                        {l.value[0][0]}
+                      </a>
+                    ) : (
+                      l.value.map(([t, r]) => <span class={`r-${r}`}>{t}</span>)
+                    )}
+                  </span>
+                </div>
+              )}
+            </li>
+          ))
+        }
+      </ol>
+    </main>
+  </body>
+</html>
+
+<style lang="scss">
+  @use '@carbon/styles/scss/colors';
+
+  :global(body) {
+    background: var(--cds-background);
+  }
+  .doc {
+    --fs: 14px;
+    --lh: 24px;
+    --num: 40px;
+    --gap: 16px;
+    --key: 176px;
+    max-width: calc(720px + 2 * var(--pf-margin));
+    margin: 0 auto;
+    padding: 120px var(--pf-margin) 160px;
+    font-family: 'IBM Plex Mono', Menlo, Consolas, monospace;
+    font-size: var(--fs);
+    line-height: var(--lh);
+    color: var(--cds-text-secondary);
+  }
+
+  /* art: its own figure, set tight (12/14) so the curves stay smooth; aligned with the text column */
+  .art {
+    margin: 0 0 56px;
+    padding-left: calc(var(--num) + var(--gap));
+  }
+  .art pre {
+    margin: 0;
+    font: inherit;
+    font-size: 12px;
+    line-height: 14px;
+    letter-spacing: 0;
+    color: var(--cds-text-secondary);
+    white-space: pre;
+  }
+  .art__row {
+    display: block;
+    min-height: 14px;
+  }
+  .art__mob {
+    display: none;
+  }
+  .a-magenta {
+    color: colors.$magenta-50;
+  }
+  .a-cyan {
+    color: colors.$cyan-40;
+  }
+  .a-shine,
+  .a-kana {
+    color: var(--cds-text-primary);
+  }
+  .a-seam {
+    color: var(--cds-text-secondary);
+  }
+
+  .file {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0 0 12px calc(var(--num) + var(--gap));
+    border-bottom: 1px solid var(--cds-border-subtle-01);
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 0.32px;
+  }
+  .file__name {
+    color: var(--cds-text-primary);
+  }
+  .file__meta {
+    color: var(--cds-text-helper);
+  }
+  .file__meta:hover {
+    color: var(--cds-text-primary);
+  }
+
+  .lines {
+    padding-top: 24px;
+    counter-reset: line;
+  }
+  .line {
+    display: grid;
+    grid-template-columns: var(--num) minmax(0, 1fr);
+    column-gap: var(--gap);
+    counter-increment: line;
+  }
+  .line::before {
+    content: counter(line);
+    text-align: right;
+    color: var(--cds-text-placeholder);
+    user-select: none;
+  }
+  .code {
+    margin: 0;
+    font: inherit;
+    overflow-wrap: anywhere;
+  }
+  .kv {
+    display: grid;
+    grid-template-columns: var(--key) minmax(0, 1fr);
+  }
+  a.kv__key,
+  .kv__value a {
+    text-decoration: none;
+  }
+  a.kv__key:hover,
+  .kv__value a:hover {
+    text-decoration: underline;
+  }
+
+  /* IBM palette, grade 40 on Gray 100 */
+  .r-mark {
+    color: colors.$magenta-40;
+  }
+  .r-h1,
+  .r-head {
+    color: var(--cds-text-primary);
+  }
+  .r-text {
+    color: var(--cds-text-secondary);
+  }
+  .r-key {
+    color: colors.$cyan-40;
+  }
+  .r-num {
+    color: colors.$teal-40;
+  }
+  .r-link {
+    color: colors.$purple-40;
+  }
+  .r-meta {
+    color: var(--cds-text-helper);
+  }
+
+  /* the wide art needs ~720px of column; below that the compact one */
+  @media (max-width: 799px) {
+    .art__desk {
+      display: none;
+    }
+    .art__mob {
+      display: block;
+    }
+  }
+  @media (max-width: 671px) {
+    .doc {
+      --fs: 12px;
+      --lh: 20px;
+      --num: 24px;
+      --gap: 12px;
+      --key: 136px;
+      padding: 64px var(--pf-margin) 96px;
+    }
+    .art {
+      margin-bottom: 40px;
+    }
+  }
+</style>

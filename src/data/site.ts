@@ -16,7 +16,7 @@ export const footerLinks: (Link & { mark: string })[] = [
   { label: 'LinkedIn', mark: '↗', href: 'https://www.linkedin.com/in/rafaelakiraimairozner/' },
   { label: 'Behance', mark: '↗' }, // TODO: add URL
   { label: 'Résumé (PDF)', mark: '↓' }, // TODO: add the PDF to /public and link it
-  { label: 'AI-readable profile', mark: '→' }, // future: /profile.md and /llms.txt
+  { label: 'AI-readable profile', mark: '→', href: '/profile' }, // also /llms.txt, /rafael-akira.md, /profile.json
 ];
 
 // About page: contact navigation
