@@ -188,6 +188,8 @@ html.has-pointer * {
 }
 .pointer {
   --pf-pointer-soft: color-mix(in srgb, var(--cds-icon-primary) 20%, transparent);
+  --pf-pointer-ease: 200ms var(--pf-ease-productive);
+  --caret-h: 22px;
   position: fixed;
   top: -100px;
   left: -100px;
@@ -195,15 +197,24 @@ html.has-pointer * {
   width: 36px;
   height: 36px;
   border-radius: 100%;
-  // idle: a thin ring in the first pointer's colour (icon-primary at 20%) around a small dot in the link blue
   background: transparent;
-  box-shadow: inset 0 0 0 1px var(--pf-pointer-soft);
   transform: translate(-50%, -50%);
   pointer-events: none;
-  transition-property: width, height, border-radius, transform, background-color, box-shadow;
+  transition-property: width, height, border-radius, background-color;
   transition-duration: 200ms;
   transition-timing-function: var(--pf-ease-productive);
 }
+// idle: a thin ring in the first pointer's colour (icon-primary at 20%) …
+.pointer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px var(--pf-pointer-soft);
+  transition: opacity var(--pf-pointer-ease), transform var(--pf-pointer-ease);
+}
+// … around a small dot in the link blue. Over text the dot itself stretches into the caret: a pill that only
+// grows taller and slimmer, so it never passes through an ellipse; the ring closes in and fades meanwhile.
 .pointer::after {
   content: '';
   position: absolute;
@@ -211,30 +222,34 @@ html.has-pointer * {
   left: 50%;
   width: 6px;
   height: 6px;
-  border-radius: 50%;
+  border-radius: 999px;
   background: var(--cds-link-primary);
   transform: translate(-50%, -50%);
-  transition: opacity 150ms var(--pf-ease-productive), transform 200ms var(--pf-ease-productive);
+  transition:
+    width var(--pf-pointer-ease),
+    height var(--pf-pointer-ease),
+    background-color var(--pf-pointer-ease),
+    opacity 150ms var(--pf-ease-productive);
 }
-// the dot folds into the caret or the highlight instead of popping out
-.pointer.is-locked::after,
-.pointer.is-text::after {
+.pointer.is-text::before {
   opacity: 0;
-  transform: translate(-50%, -50%) scale(0.2);
+  transform: scale(0.4);
+}
+.pointer.is-text::after {
+  width: 3px;
+  height: var(--caret-h);
+  background: var(--cds-interactive);
 }
 // snapping onto an element: a soft highlight that takes the element's box, and also eases the position
 .pointer.is-locked {
   background: var(--pf-pointer-soft);
-  box-shadow: inset 0 0 0 1px transparent;
-  transition-property: width, height, left, top, border-radius, background-color, box-shadow;
+  transition-property: width, height, left, top, border-radius, background-color;
   transition-duration: 100ms;
   transition-timing-function: ease-out;
 }
-.pointer.is-text {
-  width: 3px;
-  border-radius: 2px;
-  background: var(--cds-interactive);
-  box-shadow: inset 0 0 0 1px transparent;
+.pointer.is-locked::before,
+.pointer.is-locked::after {
+  opacity: 0;
 }
 .pointer.is-scrolling {
   transition: none;

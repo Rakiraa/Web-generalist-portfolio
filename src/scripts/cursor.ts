@@ -83,8 +83,9 @@ export function mountCursor(): void {
     textSize = size;
     el.classList.remove('is-locked');
     el.classList.add('is-text');
-    el.style.width = el.style.borderRadius = el.style.transform = '';
-    el.style.height = `${size * 1.4}px`;
+    // the box keeps its idle size; the dot inside stretches to the caret height (see .pointer.is-text::after)
+    el.style.width = el.style.height = el.style.borderRadius = el.style.transform = '';
+    el.style.setProperty('--caret-h', `${size * 1.4}px`);
   };
 
   // the element whose letters sit under the point, or null over blank space, icons, images and the canvas
