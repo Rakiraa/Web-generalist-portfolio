@@ -1,6 +1,6 @@
 // Pointer modeled on azumbrunnen.me (an iPadOS-style pointer), rebuilt for this site with Carbon tokens.
-// - A 36px translucent circle follows the mouse directly, with no lag.
-// - Over headings and paragraphs it becomes a 3px text caret, 1.4 × the font size tall.
+// - Idle: a 36px thin ring with a small blue dot follows the mouse directly, with no lag.
+// - Over text (the letters themselves, not blank space or icons) it becomes a 3px caret, 1.4 × the font size tall.
 // - Over buttons, links and project rows it snaps onto the element (its size and corner radius) in 0.1s.
 //   Neither the highlight nor the element moves with the pointer while locked (no parallax).
 // Mouse and trackpad only: touch devices keep the system behavior, and a touch turns the pointer off.
@@ -23,7 +23,7 @@ export function mountCursor(): void {
   let seen = false; // nothing is drawn before the first mouse move
   let dead = false; // set by a touch
   let mode: 'circle' | 'text' | 'lock' = 'circle';
-  let textEl: Element | null = null;
+  let textSize = 0;
   let target: HTMLElement | null = null; // the element the pointer is locked onto
   let box: Box = { left: 0, top: 0, width: 0, height: 0 }; // its rect
   let scrollEnd = 0;
@@ -48,7 +48,7 @@ export function mountCursor(): void {
   const circle = () => {
     release();
     mode = 'circle';
-    textEl = null;
+    textSize = 0;
     el.classList.remove('is-text', 'is-locked');
     el.style.width = el.style.height = el.style.borderRadius = el.style.transform = '';
   };
@@ -65,7 +65,7 @@ export function mountCursor(): void {
     release();
     target = t;
     mode = 'lock';
-    textEl = null;
+    textSize = 0;
     const cs = getComputedStyle(t);
     el.classList.remove('is-text');
     el.classList.add('is-locked');
@@ -76,27 +76,57 @@ export function mountCursor(): void {
   };
 
   const text = (t: Element) => {
+    const size = parseFloat(getComputedStyle(t).fontSize) || 16;
+    if (mode === 'text' && size === textSize) return;
     release();
     mode = 'text';
-    textEl = t;
+    textSize = size;
     el.classList.remove('is-locked');
     el.classList.add('is-text');
     el.style.width = el.style.borderRadius = el.style.transform = '';
-    el.style.height = `${parseFloat(getComputedStyle(t).fontSize) * 1.4}px`;
+    el.style.height = `${size * 1.4}px`;
+  };
+
+  // the element whose letters sit under the point, or null over blank space, icons, images and the canvas
+  const range = document.createRange();
+  type CaretDoc = Document & {
+    caretPositionFromPoint?: (px: number, py: number) => { offsetNode: Node; offset: number } | null;
+    caretRangeFromPoint?: (px: number, py: number) => Range | null;
+  };
+  const glyphAt = (px: number, py: number): Element | null => {
+    const d = document as CaretDoc;
+    let node: Node | null = null;
+    let offset = 0;
+    if (d.caretPositionFromPoint) {
+      const pos = d.caretPositionFromPoint(px, py);
+      if (pos) ({ offsetNode: node, offset } = pos);
+    } else if (d.caretRangeFromPoint) {
+      const r = d.caretRangeFromPoint(px, py);
+      if (r) { node = r.startContainer; offset = r.startOffset; }
+    }
+    if (!node || node.nodeType !== Node.TEXT_NODE) return null;
+    const len = node.textContent?.length ?? 0;
+    for (const o of [offset - 1, offset]) {
+      if (o < 0 || o >= len) continue;
+      range.setStart(node, o);
+      range.setEnd(node, o + 1);
+      for (const r of range.getClientRects()) {
+        if (r.width > 0 && px >= r.left - 1 && px <= r.right + 1 && py >= r.top && py <= r.bottom) return node.parentElement;
+      }
+    }
+    return null;
   };
 
   // what sits under the pointer decides its shape; links inside running text read as text
   const resolve = (node: Element | null) => {
     const lockT = node?.closest<HTMLElement>(LOCK) ?? null;
-    const textT = node?.closest(TEXT) ?? null;
-    const next = lockT && !(textT && textT !== lockT && textT.contains(lockT)) ? lockT : null;
-    if (next) {
-      if (next !== target) lock(next);
-    } else if (textT) {
-      if (mode !== 'text' || textEl !== textT) text(textT);
-    } else if (mode !== 'circle') {
-      circle();
+    if (lockT && !lockT.parentElement?.closest(TEXT)) {
+      if (lockT !== target) lock(lockT);
+      return;
     }
+    const hit = node?.closest('[aria-disabled="true"]') ? null : glyphAt(x, y);
+    if (hit) text(hit);
+    else if (mode !== 'circle') circle();
   };
 
   // locked: the highlight stays on the element's center; otherwise it follows the pointer

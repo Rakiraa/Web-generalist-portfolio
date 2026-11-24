@@ -15,9 +15,9 @@ import { site } from '../data/site';
     </div>
   </div>
   <p class="statement" id="intro-statement" data-reveal>
-    <span class="c-secondary">Rafael Akira</span> is a <em>systems thinker</em> and <em>designer</em>{' '}<br class="desk" />based in São Paulo, with <em>ten years</em> across intersection of{' '}<em class="c-secondary">brand expression</em>, <em
+    <span class="c-secondary">Rafael Akira</span> <span class="st-dim">is a <em>systems thinker</em> and <em>designer</em>{' '}<br class="desk" />based in São Paulo, with <em>ten years</em> across intersection of</span>{' '}<em class="c-secondary">brand expression</em>, <em
       class="c-secondary">craft</em
-    > &amp; <em class="c-secondary">design systems</em>.
+    > <span class="st-dim">&amp;</span> <em class="c-secondary">design systems</em>.
   </p>
   <p class="statement statement--now" data-reveal>Currently at <a href="https://www.ibm.com" rel="noopener">IBM</a>.</p>
   <a class="cue" href="#content" aria-label="Skip to content" data-reveal>↓</a>
@@ -137,10 +137,13 @@ import { site } from '../data/site';
       font-size: 16px;
       line-height: 24px;
     }
-    /* Figma mobile: 26px Light, auto leading (1.3) */
+    /* Figma mobile: 26px Light, auto leading (1.3); the connecting words step down to text-placeholder */
     .statement {
       font-size: 26px;
       line-height: 34px;
+    }
+    .st-dim {
+      color: var(--cds-text-placeholder);
     }
     .statement--now {
       margin-top: 34px;
